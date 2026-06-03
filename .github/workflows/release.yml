@@ -37,6 +37,11 @@ jobs:
             CODE_SIGNING_REQUIRED=NO \
             CODE_SIGNING_ALLOWED=NO
 
+      - name: Ad-hoc sign
+        run: |
+          APP="build/DerivedData/Build/Products/Release/ClaudeUsageTrackerBar.app"
+          codesign --deep --force --sign - "$APP"
+
       - name: Package as DMG
         run: |
           APP="build/DerivedData/Build/Products/Release/ClaudeUsageTrackerBar.app"

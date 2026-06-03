@@ -33,6 +33,7 @@ A lightweight native macOS menu bar app that shows your [Claude Code](https://cl
 1. Download `ClaudeUsageTrackerBar.dmg` from [Releases](https://github.com/yettimon/claude-usage-tracker-bar/releases)
 2. Open the DMG and drag the app to `/Applications`
 3. **First launch:** right-click → Open (required once to bypass Gatekeeper — app is unsigned)
+   > If macOS says "damaged and can't be opened", run: `xattr -cr /Applications/ClaudeUsageTrackerBar.app`
 
 ### Option B — Build from source
 
