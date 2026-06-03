@@ -16,8 +16,10 @@
 		C5957ED5668399AD08CFA66B /* JournalParserTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = DAEDD57994DB418484421DAF /* JournalParserTests.swift */; };
 		C905D889D7D6CB5C50457BE4 /* sample.jsonl in Resources */ = {isa = PBXBuildFile; fileRef = B3B221B66330E0BEA39714FA /* sample.jsonl */; };
 		E05B0120203A8F0C08977456 /* ServiceManagement.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 03A119C7D9E8051C55C7BCE6 /* ServiceManagement.framework */; };
+		F1CE0F664D94841B8FDEA65E /* UsageAggregator.swift in Sources */ = {isa = PBXBuildFile; fileRef = A7AD83F90E15650D8692126F /* UsageAggregator.swift */; };
 		F35903EAD790A1E32E705B5C /* ModelPricingTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C22179236CB7A8B9993BFDF3 /* ModelPricingTests.swift */; };
 		F6AD3701E65434DADB8DEB4E /* JournalEntry.swift in Sources */ = {isa = PBXBuildFile; fileRef = 61B1E75EF849C307F63A6954 /* JournalEntry.swift */; };
+		FCC389312BEBA2DBBFBB35DE /* UsageAggregatorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 96F5F145D51C897B34E62C5D /* UsageAggregatorTests.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -38,7 +40,9 @@
 		47FB8D0291560756865230AD /* ClaudeUsageTrackerBarApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClaudeUsageTrackerBarApp.swift; sourceTree = "<group>"; };
 		61B1E75EF849C307F63A6954 /* JournalEntry.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JournalEntry.swift; sourceTree = "<group>"; };
 		72D1B45335C4FE8064E53483 /* JournalParser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JournalParser.swift; sourceTree = "<group>"; };
+		96F5F145D51C897B34E62C5D /* UsageAggregatorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UsageAggregatorTests.swift; sourceTree = "<group>"; };
 		9CF8C293FCCAD0CE2A0A2DC9 /* UsageSummary.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UsageSummary.swift; sourceTree = "<group>"; };
+		A7AD83F90E15650D8692126F /* UsageAggregator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UsageAggregator.swift; sourceTree = "<group>"; };
 		B3B221B66330E0BEA39714FA /* sample.jsonl */ = {isa = PBXFileReference; path = sample.jsonl; sourceTree = "<group>"; };
 		BEB9BBE7FB16AFAA07CE8E90 /* ModelPricing.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ModelPricing.swift; sourceTree = "<group>"; };
 		C22179236CB7A8B9993BFDF3 /* ModelPricingTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ModelPricingTests.swift; sourceTree = "<group>"; };
@@ -65,6 +69,7 @@
 			children = (
 				72D1B45335C4FE8064E53483 /* JournalParser.swift */,
 				BEB9BBE7FB16AFAA07CE8E90 /* ModelPricing.swift */,
+				A7AD83F90E15650D8692126F /* UsageAggregator.swift */,
 			);
 			path = Data;
 			sourceTree = "<group>";
@@ -75,6 +80,7 @@
 				30702EA54DFCC72A81C88AC8 /* ClaudeUsageTrackerBarTests.swift */,
 				DAEDD57994DB418484421DAF /* JournalParserTests.swift */,
 				C22179236CB7A8B9993BFDF3 /* ModelPricingTests.swift */,
+				96F5F145D51C897B34E62C5D /* UsageAggregatorTests.swift */,
 				AE4415E0BD756300CBE387AA /* Fixtures */,
 			);
 			path = ClaudeUsageTrackerBarTests;
@@ -234,6 +240,7 @@
 				F6AD3701E65434DADB8DEB4E /* JournalEntry.swift in Sources */,
 				8305C51BFE8E888B1DD80373 /* JournalParser.swift in Sources */,
 				1EDA4F7143FACD442E09F464 /* ModelPricing.swift in Sources */,
+				F1CE0F664D94841B8FDEA65E /* UsageAggregator.swift in Sources */,
 				0F6349BCD14BA58B946D6590 /* UsageSummary.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -245,6 +252,7 @@
 				37A6BFA7FA54FF4D1A3E9E0C /* ClaudeUsageTrackerBarTests.swift in Sources */,
 				C5957ED5668399AD08CFA66B /* JournalParserTests.swift in Sources */,
 				F35903EAD790A1E32E705B5C /* ModelPricingTests.swift in Sources */,
+				FCC389312BEBA2DBBFBB35DE /* UsageAggregatorTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
