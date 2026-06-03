@@ -54,6 +54,34 @@ struct SettingsView: View {
             Divider().opacity(0.25)
 
             HStack {
+                Text("Show in menu bar")
+                    .font(.system(size: 12))
+                Spacer()
+                Toggle("", isOn: Binding(
+                    get: { settings.showInMenuBar },
+                    set: { settings.setShowInMenuBar($0) }
+                ))
+                .labelsHidden()
+                .toggleStyle(.switch)
+                if settings.showInMenuBar {
+                    Picker("", selection: Binding(
+                        get: { settings.menuBarDisplay },
+                        set: { settings.setMenuBarDisplay($0) }
+                    )) {
+                        Text("Cost (today)").tag(MenuBarDisplay.cost)
+                        Text("Tokens (today)").tag(MenuBarDisplay.tokens)
+                    }
+                    .labelsHidden()
+                    .pickerStyle(.menu)
+                    .frame(maxWidth: 110)
+                }
+            }
+            .padding(.horizontal, 14)
+            .padding(.vertical, 10)
+
+            Divider().opacity(0.25)
+
+            HStack {
                 Text("Debug mode")
                     .font(.system(size: 12))
                 Spacer()
