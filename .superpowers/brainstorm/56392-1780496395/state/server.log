@@ -1,0 +1,6 @@
+{"type":"server-started","port":51310,"host":"127.0.0.1","url_host":"localhost","url":"http://localhost:51310","screen_dir":"/Users/dima/Work/claude-usage-tracker/.superpowers/brainstorm/56392-1780496395/content","state_dir":"/Users/dima/Work/claude-usage-tracker/.superpowers/brainstorm/56392-1780496395/state"}
+{"type":"screen-added","file":"/Users/dima/Work/claude-usage-tracker/.superpowers/brainstorm/56392-1780496395/content/popup-layout.html"}
+{"type":"screen-added","file":"/Users/dima/Work/claude-usage-tracker/.superpowers/brainstorm/56392-1780496395/content/popup-native-v1.html"}
+{"type":"screen-added","file":"/Users/dima/Work/claude-usage-tracker/.superpowers/brainstorm/56392-1780496395/content/popup-native-v2.html"}
+{"type":"screen-added","file":"/Users/dima/Work/claude-usage-tracker/.superpowers/brainstorm/56392-1780496395/content/popup-native-v3.html"}
+{"type":"server-stopped","reason":"idle timeout"}

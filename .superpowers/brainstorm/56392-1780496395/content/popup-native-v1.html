@@ -1,0 +1,315 @@
+<style>
+  body { background: #1a1a2e; }
+  .scene {
+    display: flex;
+    gap: 32px;
+    justify-content: center;
+    align-items: flex-start;
+    padding: 16px 0;
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif;
+  }
+  .col { display: flex; flex-direction: column; align-items: center; gap: 8px; }
+  .mode-label {
+    font-size: 11px;
+    color: #999;
+    letter-spacing: 0.04em;
+  }
+
+  /* Native macOS dark popup */
+  .popup {
+    width: 300px;
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 12px 40px rgba(0,0,0,0.6), inset 0 0 0 0.5px rgba(255,255,255,0.12);
+    background: rgba(40, 40, 44, 0.96);
+    backdrop-filter: blur(40px);
+    -webkit-backdrop-filter: blur(40px);
+    color: #ffffff;
+  }
+  .popup.light {
+    background: rgba(246, 246, 248, 0.94);
+    color: #1d1d1f;
+    box-shadow: 0 12px 40px rgba(0,0,0,0.25), inset 0 0 0 0.5px rgba(0,0,0,0.1);
+  }
+
+  /* Section header */
+  .section-header {
+    padding: 10px 16px 4px;
+    font-size: 11px;
+    font-weight: 500;
+    color: rgba(255,255,255,0.45);
+    letter-spacing: 0.02em;
+  }
+  .popup.light .section-header { color: rgba(0,0,0,0.4); }
+
+  /* Stat row — native menu item style */
+  .stat-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    padding: 3px 16px;
+  }
+  .stat-name {
+    font-size: 13px;
+    color: rgba(255,255,255,0.75);
+  }
+  .popup.light .stat-name { color: rgba(0,0,0,0.65); }
+  .stat-val {
+    font-size: 13px;
+    font-weight: 500;
+    color: #ffffff;
+  }
+  .popup.light .stat-val { color: #1d1d1f; }
+  .stat-val.cost {
+    font-size: 15px;
+    font-weight: 600;
+    color: #34c759;
+  }
+  .popup.light .stat-val.cost { color: #1a7f37; }
+
+  /* Model tags inline */
+  .models-line {
+    padding: 4px 16px 10px;
+    display: flex;
+    gap: 4px;
+    flex-wrap: wrap;
+  }
+  .mtag {
+    font-size: 10px;
+    padding: 1px 6px;
+    border-radius: 4px;
+    background: rgba(255,255,255,0.1);
+    color: rgba(255,255,255,0.55);
+    border: 0.5px solid rgba(255,255,255,0.15);
+  }
+  .popup.light .mtag {
+    background: rgba(0,0,0,0.06);
+    color: rgba(0,0,0,0.45);
+    border-color: rgba(0,0,0,0.1);
+  }
+
+  /* Divider */
+  .sep {
+    height: 0.5px;
+    background: rgba(255,255,255,0.12);
+    margin: 2px 0;
+  }
+  .popup.light .sep { background: rgba(0,0,0,0.1); }
+
+  /* Action rows — like native menu items */
+  .action-item {
+    display: flex;
+    align-items: center;
+    padding: 7px 16px;
+    font-size: 13px;
+    color: rgba(255,255,255,0.85);
+    cursor: pointer;
+    transition: background 0.08s;
+    gap: 8px;
+  }
+  .action-item:hover { background: rgba(255,255,255,0.1); }
+  .popup.light .action-item { color: rgba(0,0,0,0.8); }
+  .popup.light .action-item:hover { background: rgba(0,0,0,0.07); }
+  .action-item.danger { color: #ff453a; }
+  .popup.light .action-item.danger { color: #d70015; }
+  .action-icon { font-size: 13px; opacity: 0.7; width: 16px; text-align: center; }
+</style>
+
+<h2>Native macOS style popup</h2>
+<p class="subtitle">Closer to system menus — vibrancy, SF Pro, native spacing. Click preferred theme.</p>
+
+<div class="scene">
+  <!-- DARK -->
+  <div class="col">
+    <div class="mode-label">Dark (system dark mode)</div>
+    <div class="popup option" data-choice="dark" onclick="toggleSelect(this)">
+
+      <div class="section-header">TODAY</div>
+      <div class="stat-item">
+        <span class="stat-name">Cost</span>
+        <span class="stat-val cost">$3.42</span>
+      </div>
+      <div class="stat-item">
+        <span class="stat-name">Input tokens</span>
+        <span class="stat-val">1.24M</span>
+      </div>
+      <div class="stat-item">
+        <span class="stat-name">Output tokens</span>
+        <span class="stat-val">48.3K</span>
+      </div>
+      <div class="stat-item">
+        <span class="stat-name">Cache write</span>
+        <span class="stat-val">340K</span>
+      </div>
+      <div class="stat-item">
+        <span class="stat-name">Cache read</span>
+        <span class="stat-val">820K</span>
+      </div>
+      <div class="models-line">
+        <span class="mtag">sonnet-4-6</span>
+        <span class="mtag">haiku-4-5</span>
+      </div>
+
+      <div class="sep"></div>
+
+      <div class="section-header">LAST 30 DAYS</div>
+      <div class="stat-item">
+        <span class="stat-name">Cost</span>
+        <span class="stat-val cost">$177.59</span>
+      </div>
+      <div class="stat-item">
+        <span class="stat-name">Input tokens</span>
+        <span class="stat-val">77.6K</span>
+      </div>
+      <div class="stat-item">
+        <span class="stat-name">Output tokens</span>
+        <span class="stat-val">2.45M</span>
+      </div>
+      <div class="stat-item">
+        <span class="stat-name">Cache write</span>
+        <span class="stat-val">15.1M</span>
+      </div>
+      <div class="stat-item">
+        <span class="stat-name">Cache read</span>
+        <span class="stat-val">311.8M</span>
+      </div>
+      <div class="models-line">
+        <span class="mtag">sonnet-4-6</span>
+        <span class="mtag">haiku-4-5</span>
+        <span class="mtag">opus-4-8</span>
+      </div>
+
+      <div class="sep"></div>
+
+      <div class="section-header">ALL TIME</div>
+      <div class="stat-item">
+        <span class="stat-name">Cost</span>
+        <span class="stat-val cost">$214.30</span>
+      </div>
+      <div class="stat-item">
+        <span class="stat-name">Input tokens</span>
+        <span class="stat-val">130.2K</span>
+      </div>
+      <div class="stat-item">
+        <span class="stat-name">Output tokens</span>
+        <span class="stat-val">2.52M</span>
+      </div>
+      <div class="stat-item">
+        <span class="stat-name">Cache write</span>
+        <span class="stat-val">17.8M</span>
+      </div>
+      <div class="stat-item">
+        <span class="stat-name">Cache read</span>
+        <span class="stat-val">354.3M</span>
+      </div>
+      <div class="models-line">
+        <span class="mtag">sonnet-4-6</span>
+        <span class="mtag">haiku-4-5</span>
+        <span class="mtag">opus-4-8</span>
+        <span class="mtag">opus-4-7</span>
+      </div>
+
+      <div class="sep"></div>
+      <div class="action-item"><span class="action-icon">⚙</span>Settings</div>
+      <div class="action-item danger"><span class="action-icon">✕</span>Quit</div>
+
+    </div>
+  </div>
+
+  <!-- LIGHT -->
+  <div class="col">
+    <div class="mode-label">Light (system light mode)</div>
+    <div class="popup light option" data-choice="light" onclick="toggleSelect(this)">
+
+      <div class="section-header">TODAY</div>
+      <div class="stat-item">
+        <span class="stat-name">Cost</span>
+        <span class="stat-val cost">$3.42</span>
+      </div>
+      <div class="stat-item">
+        <span class="stat-name">Input tokens</span>
+        <span class="stat-val">1.24M</span>
+      </div>
+      <div class="stat-item">
+        <span class="stat-name">Output tokens</span>
+        <span class="stat-val">48.3K</span>
+      </div>
+      <div class="stat-item">
+        <span class="stat-name">Cache write</span>
+        <span class="stat-val">340K</span>
+      </div>
+      <div class="stat-item">
+        <span class="stat-name">Cache read</span>
+        <span class="stat-val">820K</span>
+      </div>
+      <div class="models-line">
+        <span class="mtag">sonnet-4-6</span>
+        <span class="mtag">haiku-4-5</span>
+      </div>
+
+      <div class="sep"></div>
+
+      <div class="section-header">LAST 30 DAYS</div>
+      <div class="stat-item">
+        <span class="stat-name">Cost</span>
+        <span class="stat-val cost">$177.59</span>
+      </div>
+      <div class="stat-item">
+        <span class="stat-name">Input tokens</span>
+        <span class="stat-val">77.6K</span>
+      </div>
+      <div class="stat-item">
+        <span class="stat-name">Output tokens</span>
+        <span class="stat-val">2.45M</span>
+      </div>
+      <div class="stat-item">
+        <span class="stat-name">Cache write</span>
+        <span class="stat-val">15.1M</span>
+      </div>
+      <div class="stat-item">
+        <span class="stat-name">Cache read</span>
+        <span class="stat-val">311.8M</span>
+      </div>
+      <div class="models-line">
+        <span class="mtag">sonnet-4-6</span>
+        <span class="mtag">haiku-4-5</span>
+        <span class="mtag">opus-4-8</span>
+      </div>
+
+      <div class="sep"></div>
+
+      <div class="section-header">ALL TIME</div>
+      <div class="stat-item">
+        <span class="stat-name">Cost</span>
+        <span class="stat-val cost">$214.30</span>
+      </div>
+      <div class="stat-item">
+        <span class="stat-name">Input tokens</span>
+        <span class="stat-val">130.2K</span>
+      </div>
+      <div class="stat-item">
+        <span class="stat-name">Output tokens</span>
+        <span class="stat-val">2.52M</span>
+      </div>
+      <div class="stat-item">
+        <span class="stat-name">Cache write</span>
+        <span class="stat-val">17.8M</span>
+      </div>
+      <div class="stat-item">
+        <span class="stat-name">Cache read</span>
+        <span class="stat-val">354.3M</span>
+      </div>
+      <div class="models-line">
+        <span class="mtag">sonnet-4-6</span>
+        <span class="mtag">haiku-4-5</span>
+        <span class="mtag">opus-4-8</span>
+        <span class="mtag">opus-4-7</span>
+      </div>
+
+      <div class="sep"></div>
+      <div class="action-item"><span class="action-icon">⚙</span>Settings</div>
+      <div class="action-item danger"><span class="action-icon">✕</span>Quit</div>
+
+    </div>
+  </div>
+</div>

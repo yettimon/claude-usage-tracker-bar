@@ -1,0 +1,161 @@
+<style>
+  body { background: #2a2a2e; display: flex; justify-content: center; padding: 24px 0; }
+  .popup {
+    width: 280px;
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 12px 40px rgba(0,0,0,0.6), inset 0 0 0 0.5px rgba(255,255,255,0.12);
+    background: rgba(40, 40, 44, 0.98);
+    color: #ffffff;
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif;
+  }
+  .section-header {
+    padding: 9px 14px 2px;
+    font-size: 10px;
+    font-weight: 400;
+    color: rgba(255,255,255,0.38);
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+  }
+  .stat-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    padding: 2px 14px;
+  }
+  .stat-name {
+    font-size: 12px;
+    font-weight: 400;
+    color: rgba(255,255,255,0.65);
+  }
+  .stat-val {
+    font-size: 12px;
+    font-weight: 400;
+    color: #ffffff;
+  }
+  .stat-val.cost {
+    font-size: 13px;
+    font-weight: 500;
+    color: #34c759;
+  }
+  .models-line {
+    padding: 4px 14px 9px;
+    display: flex;
+    gap: 3px;
+    flex-wrap: wrap;
+  }
+  .mtag {
+    font-size: 10px;
+    padding: 1px 5px;
+    border-radius: 3px;
+    background: rgba(255,255,255,0.07);
+    color: rgba(255,255,255,0.45);
+    border: 0.5px solid rgba(255,255,255,0.1);
+  }
+  .sep {
+    height: 0.5px;
+    background: rgba(255,255,255,0.12);
+    margin: 2px 0;
+  }
+  .action-item {
+    padding: 7px 14px;
+    font-size: 12px;
+    font-weight: 400;
+    color: rgba(255,255,255,0.75);
+    cursor: pointer;
+  }
+  .action-item.danger { color: #ff453a; }
+</style>
+
+<div class="popup">
+
+  <div class="section-header">Today</div>
+  <div class="stat-item">
+    <span class="stat-name">Cost</span>
+    <span class="stat-val cost">$3.42</span>
+  </div>
+  <div class="stat-item">
+    <span class="stat-name">Input tokens</span>
+    <span class="stat-val">1.24M</span>
+  </div>
+  <div class="stat-item">
+    <span class="stat-name">Output tokens</span>
+    <span class="stat-val">48.3K</span>
+  </div>
+  <div class="stat-item">
+    <span class="stat-name">Cache write</span>
+    <span class="stat-val">340K</span>
+  </div>
+  <div class="stat-item">
+    <span class="stat-name">Cache read</span>
+    <span class="stat-val">820K</span>
+  </div>
+  <div class="models-line">
+    <span class="mtag">sonnet-4-6</span>
+    <span class="mtag">haiku-4-5</span>
+  </div>
+
+  <div class="sep"></div>
+
+  <div class="section-header">Last 30 days</div>
+  <div class="stat-item">
+    <span class="stat-name">Cost</span>
+    <span class="stat-val cost">$177.59</span>
+  </div>
+  <div class="stat-item">
+    <span class="stat-name">Input tokens</span>
+    <span class="stat-val">77.6K</span>
+  </div>
+  <div class="stat-item">
+    <span class="stat-name">Output tokens</span>
+    <span class="stat-val">2.45M</span>
+  </div>
+  <div class="stat-item">
+    <span class="stat-name">Cache write</span>
+    <span class="stat-val">15.1M</span>
+  </div>
+  <div class="stat-item">
+    <span class="stat-name">Cache read</span>
+    <span class="stat-val">311.8M</span>
+  </div>
+  <div class="models-line">
+    <span class="mtag">sonnet-4-6</span>
+    <span class="mtag">haiku-4-5</span>
+    <span class="mtag">opus-4-8</span>
+  </div>
+
+  <div class="sep"></div>
+
+  <div class="section-header">All time</div>
+  <div class="stat-item">
+    <span class="stat-name">Cost</span>
+    <span class="stat-val cost">$214.30</span>
+  </div>
+  <div class="stat-item">
+    <span class="stat-name">Input tokens</span>
+    <span class="stat-val">130.2K</span>
+  </div>
+  <div class="stat-item">
+    <span class="stat-name">Output tokens</span>
+    <span class="stat-val">2.52M</span>
+  </div>
+  <div class="stat-item">
+    <span class="stat-name">Cache write</span>
+    <span class="stat-val">17.8M</span>
+  </div>
+  <div class="stat-item">
+    <span class="stat-name">Cache read</span>
+    <span class="stat-val">354.3M</span>
+  </div>
+  <div class="models-line">
+    <span class="mtag">sonnet-4-6</span>
+    <span class="mtag">haiku-4-5</span>
+    <span class="mtag">opus-4-8</span>
+    <span class="mtag">opus-4-7</span>
+  </div>
+
+  <div class="sep"></div>
+  <div class="action-item">Settings</div>
+  <div class="action-item danger">Quit</div>
+
+</div>
