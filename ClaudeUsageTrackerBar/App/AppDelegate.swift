@@ -19,6 +19,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         if let image = NSImage(named: "MenuBarIcon") {
             image.size = NSSize(width: 18, height: 18)
             button.image = image
+        } else if let symbol = NSImage(systemSymbolName: "dollarsign.circle.fill", accessibilityDescription: nil) {
+            button.image = symbol
+        } else {
+            button.title = "₵"
         }
         button.action = #selector(togglePopover)
         button.target = self
