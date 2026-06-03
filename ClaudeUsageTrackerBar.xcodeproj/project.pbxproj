@@ -28,6 +28,7 @@
 		F35903EAD790A1E32E705B5C /* ModelPricingTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C22179236CB7A8B9993BFDF3 /* ModelPricingTests.swift */; };
 		F6AD3701E65434DADB8DEB4E /* JournalEntry.swift in Sources */ = {isa = PBXBuildFile; fileRef = 61B1E75EF849C307F63A6954 /* JournalEntry.swift */; };
 		FCC389312BEBA2DBBFBB35DE /* UsageAggregatorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 96F5F145D51C897B34E62C5D /* UsageAggregatorTests.swift */; };
+		C4FFF9A6812D48EC9C5BC7D1 /* AppSettingsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 86FEFE50E4EE441E9F070942 /* AppSettingsTests.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -62,6 +63,7 @@
 		BEB9BBE7FB16AFAA07CE8E90 /* ModelPricing.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ModelPricing.swift; sourceTree = "<group>"; };
 		C22179236CB7A8B9993BFDF3 /* ModelPricingTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ModelPricingTests.swift; sourceTree = "<group>"; };
 		C7E5231D178BA18D0B93C8D0 /* ClaudeUsageTrackerBar.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = ClaudeUsageTrackerBar.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		86FEFE50E4EE441E9F070942 /* AppSettingsTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppSettingsTests.swift; sourceTree = "<group>"; };
 		DAEDD57994DB418484421DAF /* JournalParserTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JournalParserTests.swift; sourceTree = "<group>"; };
 		DC56A01D88AFD00BA5B57568 /* AppSettings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppSettings.swift; sourceTree = "<group>"; };
 		DEFB4AA08482CE295D97D5FF /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
@@ -111,6 +113,7 @@
 		84F78CD0D963476F3832EAE2 /* ClaudeUsageTrackerBarTests */ = {
 			isa = PBXGroup;
 			children = (
+				86FEFE50E4EE441E9F070942 /* AppSettingsTests.swift */,
 				30702EA54DFCC72A81C88AC8 /* ClaudeUsageTrackerBarTests.swift */,
 				DAEDD57994DB418484421DAF /* JournalParserTests.swift */,
 				C22179236CB7A8B9993BFDF3 /* ModelPricingTests.swift */,
@@ -321,6 +324,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				C4FFF9A6812D48EC9C5BC7D1 /* AppSettingsTests.swift in Sources */,
 				37A6BFA7FA54FF4D1A3E9E0C /* ClaudeUsageTrackerBarTests.swift in Sources */,
 				C5957ED5668399AD08CFA66B /* JournalParserTests.swift in Sources */,
 				F35903EAD790A1E32E705B5C /* ModelPricingTests.swift in Sources */,
