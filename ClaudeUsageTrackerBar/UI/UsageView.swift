@@ -72,6 +72,7 @@ struct UsageSectionView: View {
                 StatRowView(label: "Output tokens", value: formatTokens(displayed.outputTokens))
                 StatRowView(label: "Cache write", value: formatTokens(displayed.cacheWriteTokens))
                 StatRowView(label: "Cache read", value: formatTokens(displayed.cacheReadTokens))
+                StatRowView(label: "Total tokens", value: formatTokens(displayed.inputTokens + displayed.outputTokens + displayed.cacheWriteTokens + displayed.cacheReadTokens))
 
                 if !displayed.modelsUsed.isEmpty {
                     LazyVGrid(
