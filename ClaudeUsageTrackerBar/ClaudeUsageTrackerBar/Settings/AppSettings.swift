@@ -6,10 +6,12 @@ private let logger = Logger(subsystem: "com.yettimon.claude-usage-tracker-bar", 
 
 final class AppSettings: ObservableObject {
     @Published private(set) var launchAtLogin: Bool
+    @Published var debugMode: Bool
 
     init() {
         let stored = UserDefaults.standard.object(forKey: "launchAtLogin") as? Bool
         launchAtLogin = stored ?? true
+        debugMode = UserDefaults.standard.bool(forKey: "debugMode")
         if stored == nil {
             applyLaunchAtLogin(true)
         }
@@ -17,6 +19,11 @@ final class AppSettings: ObservableObject {
 
     func setLaunchAtLogin(_ enabled: Bool) {
         applyLaunchAtLogin(enabled)
+    }
+
+    func setDebugMode(_ enabled: Bool) {
+        debugMode = enabled
+        UserDefaults.standard.set(enabled, forKey: "debugMode")
     }
 
     private func applyLaunchAtLogin(_ enabled: Bool) {

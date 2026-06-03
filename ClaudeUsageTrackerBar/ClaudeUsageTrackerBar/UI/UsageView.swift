@@ -18,11 +18,11 @@ struct UsageView: View {
 
     private var mainView: some View {
         VStack(alignment: .leading, spacing: 0) {
-            UsageSectionView(title: "Today", summary: store.today)
+            UsageSectionView(title: "Today", summary: store.today, debugMode: settings.debugMode)
             Divider().opacity(0.25)
-            UsageSectionView(title: "Last 30 Days", summary: store.last30Days)
+            UsageSectionView(title: "Last 30 Days", summary: store.last30Days, debugMode: settings.debugMode)
             Divider().opacity(0.25)
-            UsageSectionView(title: "All Time", summary: store.allTime)
+            UsageSectionView(title: "All Time", summary: store.allTime, debugMode: settings.debugMode)
             Divider().opacity(0.25)
             menuRow("Settings") { showSettings = true }
             menuRow("Quit", isDestructive: true) { NSApp.terminate(nil) }
@@ -46,6 +46,7 @@ struct UsageView: View {
 struct UsageSectionView: View {
     let title: String
     let summary: UsageSummary
+    var debugMode: Bool = false
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
@@ -104,6 +105,9 @@ struct UsageSectionView: View {
     }
 
     private func formatTokens(_ n: Int) -> String {
+        if debugMode {
+            return "\(n)"
+        }
         switch n {
         case 1_000_000...: return String(format: "%.1fM", Double(n) / 1_000_000)
         case 1_000...:     return String(format: "%.1fK", Double(n) / 1_000)
