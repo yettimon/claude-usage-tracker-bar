@@ -1,0 +1,52 @@
+name: ClaudeUsageTrackerBar
+options:
+  bundleIdPrefix: com.yettimon
+  deploymentTarget:
+    macOS: "13.0"
+  createIntermediateGroups: true
+  xcodeVersion: "15.0"
+
+targets:
+  ClaudeUsageTrackerBar:
+    type: application
+    platform: macOS
+    deploymentTarget: "13.0"
+    sources:
+      - path: ClaudeUsageTrackerBar
+    info:
+      path: ClaudeUsageTrackerBar/Info.plist
+      properties:
+        CFBundleName: ClaudeUsageTrackerBar
+        CFBundleDisplayName: Claude Usage Tracker
+        LSUIElement: true
+        NSPrincipalClass: NSApplication
+        CFBundleVersion: "1"
+        CFBundleShortVersionString: "0.1.0"
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.yettimon.claude-usage-tracker-bar
+        SWIFT_VERSION: "5.9"
+        MACOSX_DEPLOYMENT_TARGET: "13.0"
+        CODE_SIGN_IDENTITY: ""
+        CODE_SIGNING_REQUIRED: "NO"
+        CODE_SIGNING_ALLOWED: "NO"
+        ENABLE_HARDENED_RUNTIME: "NO"
+    dependencies:
+      - sdk: CoreServices.framework
+      - sdk: ServiceManagement.framework
+
+  ClaudeUsageTrackerBarTests:
+    type: bundle.unit-test
+    platform: macOS
+    deploymentTarget: "13.0"
+    sources:
+      - path: ClaudeUsageTrackerBarTests
+    dependencies:
+      - target: ClaudeUsageTrackerBar
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.yettimon.claude-usage-tracker-bar-tests
+        SWIFT_VERSION: "5.9"
+        MACOSX_DEPLOYMENT_TARGET: "13.0"
+        CODE_SIGN_IDENTITY: ""
+        CODE_SIGNING_REQUIRED: "NO"
