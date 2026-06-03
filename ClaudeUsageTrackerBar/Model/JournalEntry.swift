@@ -7,4 +7,6 @@ struct JournalEntry {
     let outputTokens: Int
     let cacheWriteTokens: Int
     let cacheReadTokens: Int
+
+    var totalTokens: Int { inputTokens + outputTokens + cacheWriteTokens + cacheReadTokens }
 }

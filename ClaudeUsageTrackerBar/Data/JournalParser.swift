@@ -18,7 +18,7 @@ enum JournalParser {
             options: [.skipsHiddenFiles]
         ) else { return [] }
 
-        var seenRequestIds = Set<String>()
+        var requestIdIndex: [String: Int] = [:]
         var entries: [JournalEntry] = []
 
         for case let url as URL in enumerator {
@@ -27,7 +27,14 @@ enum JournalParser {
             for line in content.components(separatedBy: .newlines) where !line.isEmpty {
                 guard let (requestId, entry) = parseEntry(line) else { continue }
                 if let id = requestId {
-                    guard seenRequestIds.insert(id).inserted else { continue }
+                    if let existingIdx = requestIdIndex[id] {
+                        // Keep the entry with more total tokens (streaming writes incomplete entries first)
+                        if entry.totalTokens > entries[existingIdx].totalTokens {
+                            entries[existingIdx] = entry
+                        }
+                        continue
+                    }
+                    requestIdIndex[id] = entries.count
                 }
                 entries.append(entry)
             }
