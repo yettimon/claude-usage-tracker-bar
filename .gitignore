@@ -2,6 +2,7 @@
 *.xcuserstate
 xcuserdata/
 DerivedData/
+ClaudeUsageTrackerBar/ClaudeUsageTrackerBar.xcodeproj/
 *.xcscmblueprint
 build/
 *.ipa
