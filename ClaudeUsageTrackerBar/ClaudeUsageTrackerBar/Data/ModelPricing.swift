@@ -19,32 +19,35 @@ struct ModelPrice {
 }
 
 enum ModelPricing {
-    // Prices in USD per 1M tokens. Update from:
-    // https://platform.claude.com/docs/en/about-claude/pricing
+    // Prices in USD per 1M tokens (5-minute cache write rates).
+    // Update from: https://platform.claude.com/docs/en/about-claude/pricing
     static let table: [String: ModelPrice] = [
+        // Opus 4.5–4.8: $5 input, $25 output
         "claude-opus-4-8": ModelPrice(
-            inputPerMToken: 15.0,
-            outputPerMToken: 75.0,
-            cacheWritePerMToken: 18.75,
-            cacheReadPerMToken: 1.50
+            inputPerMToken: 5.0,
+            outputPerMToken: 25.0,
+            cacheWritePerMToken: 6.25,
+            cacheReadPerMToken: 0.50
         ),
         "claude-opus-4-7": ModelPrice(
-            inputPerMToken: 15.0,
-            outputPerMToken: 75.0,
-            cacheWritePerMToken: 18.75,
-            cacheReadPerMToken: 1.50
+            inputPerMToken: 5.0,
+            outputPerMToken: 25.0,
+            cacheWritePerMToken: 6.25,
+            cacheReadPerMToken: 0.50
         ),
+        // Sonnet 4.x: $3 input, $15 output
         "claude-sonnet-4-6": ModelPrice(
             inputPerMToken: 3.0,
             outputPerMToken: 15.0,
             cacheWritePerMToken: 3.75,
             cacheReadPerMToken: 0.30
         ),
+        // Haiku 4.5: $1 input, $5 output
         "claude-haiku-4-5-20251001": ModelPrice(
-            inputPerMToken: 0.8,
-            outputPerMToken: 4.0,
-            cacheWritePerMToken: 1.0,
-            cacheReadPerMToken: 0.08
+            inputPerMToken: 1.0,
+            outputPerMToken: 5.0,
+            cacheWritePerMToken: 1.25,
+            cacheReadPerMToken: 0.10
         ),
     ]
 
