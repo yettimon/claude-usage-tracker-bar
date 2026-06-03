@@ -1,5 +1,9 @@
 # Claude Usage Tracker Bar
 
+<p align="center">
+  <img src="docs/screenshots/icon.svg" width="80" alt="Claude Usage Tracker Bar icon"/>
+</p>
+
 A lightweight native macOS menu bar app that shows your [Claude Code](https://claude.ai/code) token usage in real time — cost, token breakdown, and models used — directly from local logs. No API calls, no accounts, no telemetry.
 
 ## Features
@@ -9,16 +13,18 @@ A lightweight native macOS menu bar app that shows your [Claude Code](https://cl
 - **Full token breakdown** — Input, Output, Cache Write, Cache Read, Total
 - **Models used** — displayed as compact tags per section
 - **Cost estimate** — calculated locally from Anthropic's published pricing
-- **Dark/light mode** — template icon adapts automatically
+- **Colored menu bar icon** — orange spark + gold coin stack, visible on any menu bar
 - **Launch at login** — enabled by default via SMAppService
 - **Debug mode** — shows exact token counts with thousands separators instead of K/M
 - **Animate updates** — numbers transition smoothly when new tokens arrive
 
 ## Screenshots
 
-| Usage popup | Settings |
-|---|---|
-| ![Usage popup](docs/screenshots/popup.png) | ![Settings](docs/screenshots/settings.png) |
+<p align="center">
+  <img src="docs/screenshots/popup.png" width="280" alt="Usage popup"/>
+  &nbsp;&nbsp;
+  <img src="docs/screenshots/settings.png" width="280" alt="Settings"/>
+</p>
 
 ## Install
 
