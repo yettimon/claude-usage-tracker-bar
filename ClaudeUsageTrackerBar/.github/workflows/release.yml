@@ -1,0 +1,52 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  build:
+    runs-on: macos-14
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Select Xcode
+        run: sudo xcode-select -s /Applications/Xcode.app
+
+      - name: Install xcodegen
+        run: brew install xcodegen
+
+      - name: Generate Xcode project
+        run: |
+          cd ClaudeUsageTrackerBar
+          xcodegen generate
+
+      - name: Build (unsigned)
+        run: |
+          cd ClaudeUsageTrackerBar
+          xcodebuild build \
+            -scheme ClaudeUsageTrackerBar \
+            -configuration Release \
+            -derivedDataPath build/DerivedData \
+            CODE_SIGN_IDENTITY="" \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGNING_ALLOWED=NO
+
+      - name: Package as DMG
+        run: |
+          APP="ClaudeUsageTrackerBar/build/DerivedData/Build/Products/Release/ClaudeUsageTrackerBar.app"
+          hdiutil create \
+            -volname "Claude Usage Tracker Bar" \
+            -srcfolder "$APP" \
+            -ov -format UDZO \
+            "ClaudeUsageTrackerBar-${{ github.ref_name }}.dmg"
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: "ClaudeUsageTrackerBar-${{ github.ref_name }}.dmg"
+          generate_release_notes: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
