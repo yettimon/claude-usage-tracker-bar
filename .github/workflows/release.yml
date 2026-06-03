@@ -19,13 +19,10 @@ jobs:
         run: brew install xcodegen
 
       - name: Generate Xcode project
-        run: |
-          cd ClaudeUsageTrackerBar
-          xcodegen generate
+        run: xcodegen generate
 
       - name: Build (unsigned)
         run: |
-          cd ClaudeUsageTrackerBar
           xcodebuild build \
             -scheme ClaudeUsageTrackerBar \
             -configuration Release \
@@ -36,7 +33,7 @@ jobs:
 
       - name: Package as DMG
         run: |
-          APP="ClaudeUsageTrackerBar/build/DerivedData/Build/Products/Release/ClaudeUsageTrackerBar.app"
+          APP="build/DerivedData/Build/Products/Release/ClaudeUsageTrackerBar.app"
           hdiutil create \
             -volname "Claude Usage Tracker Bar" \
             -srcfolder "$APP" \

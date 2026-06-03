@@ -61,13 +61,13 @@ Costs are estimates. Cache write rates use the 5-minute TTL tier.
 
 | Tool | Purpose |
 |---|---|
-| [Swift](https://www.swift.org) + SwiftUI + AppKit | Native macOS UI (~10 MB idle RAM vs ~80 MB for Electron) |
-| FSEvents (CoreServices) | Recursive filesystem watching with 500 ms debounce |
-| SMAppService (ServiceManagement) | Launch at login (macOS 13+ API) |
-| [XcodeGen](https://github.com/yonaskolb/XcodeGen) | Xcode project generation from `project.yml` |
-| GitHub Actions | Automated unsigned DMG builds on `v*` tag push |
-| [ccusage](https://github.com/ryoppippi/ccusage) | Reference for JSONL structure, deduplication logic, and token field names |
-| [Claude Code](https://claude.ai/code) | Built entirely via AI-assisted development (Anthropic) |
+| [Swift](https://www.swift.org) + SwiftUI + AppKit | Native macOS UI — ~10 MB idle RAM vs ~80 MB for Electron alternatives |
+| [FSEvents](https://developer.apple.com/documentation/coreservices/file_system_events) (CoreServices) | Low-level filesystem watching — fires within 500 ms of any JSONL write |
+| [SMAppService](https://developer.apple.com/documentation/servicemanagement/smappservice) (ServiceManagement) | macOS 13+ API for launch-at-login without a helper bundle |
+| [XcodeGen](https://github.com/yonaskolb/XcodeGen) | Generates `ClaudeUsageTrackerBar.xcodeproj` from `project.yml` — no checked-in pbxproj noise |
+| [GitHub Actions](https://github.com/features/actions) | Unsigned DMG built and released automatically on every `v*` tag push |
+| [ccusage](https://github.com/ryoppippi/ccusage) | Primary inspiration — referenced its Rust source for JSONL entry structure, `requestId` deduplication strategy, sidechain filtering, and subagent path discovery |
+| [Claude Code](https://claude.ai/code) | Entire codebase written via AI-assisted development with Claude Sonnet |
 
 ## Disclaimer
 
