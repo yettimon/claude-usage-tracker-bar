@@ -10,3 +10,4 @@ build/
 
 # Superpowers internal docs
 docs/superpowers/
+.superpowers/
