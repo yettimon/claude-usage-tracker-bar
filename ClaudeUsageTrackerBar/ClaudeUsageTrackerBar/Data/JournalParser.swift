@@ -18,10 +18,19 @@ enum JournalParser {
             options: [.skipsHiddenFiles]
         ) else { return [] }
 
+        var seenRequestIds = Set<String>()
         var entries: [JournalEntry] = []
+
         for case let url as URL in enumerator {
             guard url.pathExtension == "jsonl" else { continue }
-            entries.append(contentsOf: parseFile(at: url))
+            guard let content = try? String(contentsOf: url, encoding: .utf8) else { continue }
+            for line in content.components(separatedBy: .newlines) where !line.isEmpty {
+                guard let (requestId, entry) = parseEntry(line) else { continue }
+                if let id = requestId {
+                    guard seenRequestIds.insert(id).inserted else { continue }
+                }
+                entries.append(entry)
+            }
         }
         return entries
     }
@@ -35,6 +44,10 @@ enum JournalParser {
     }
 
     static func parseLine(_ line: String) -> JournalEntry? {
+        parseEntry(line)?.entry
+    }
+
+    private static func parseEntry(_ line: String) -> (requestId: String?, entry: JournalEntry)? {
         guard
             let data = line.data(using: .utf8),
             let obj = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
@@ -49,7 +62,7 @@ enum JournalParser {
         // Skip synthetic/internal entries — not real API calls
         guard !model.hasPrefix("<") else { return nil }
 
-        return JournalEntry(
+        let entry = JournalEntry(
             timestamp: timestamp,
             model: model,
             inputTokens: usage["input_tokens"] as? Int ?? 0,
@@ -57,5 +70,6 @@ enum JournalParser {
             cacheWriteTokens: usage["cache_creation_input_tokens"] as? Int ?? 0,
             cacheReadTokens: usage["cache_read_input_tokens"] as? Int ?? 0
         )
+        return (obj["requestId"] as? String, entry)
     }
 }

@@ -71,12 +71,12 @@ struct UsageSectionView: View {
 
                 if !summary.modelsUsed.isEmpty {
                     LazyVGrid(
-                        columns: [GridItem(.adaptive(minimum: 72, maximum: 140))],
+                        columns: Array(repeating: GridItem(.flexible()), count: 3),
                         alignment: .leading,
                         spacing: 4
                     ) {
                         ForEach(summary.modelsUsed, id: \.self) { model in
-                            Text(model.replacingOccurrences(of: "claude-", with: ""))
+                            Text(shortModelName(model))
                                 .font(.system(size: 10))
                                 .foregroundStyle(.secondary)
                                 .padding(.horizontal, 5)
@@ -92,6 +92,15 @@ struct UsageSectionView: View {
                 }
             }
         }
+    }
+
+    private func shortModelName(_ model: String) -> String {
+        var name = model.replacingOccurrences(of: "claude-", with: "")
+        // Strip trailing snapshot date suffix like -20251001
+        if let range = name.range(of: #"-\d{8}$"#, options: .regularExpression) {
+            name.removeSubrange(range)
+        }
+        return name
     }
 
     private func formatTokens(_ n: Int) -> String {
