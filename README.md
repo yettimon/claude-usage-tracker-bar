@@ -69,6 +69,19 @@ Costs are estimates. Cache write rates use the 5-minute TTL tier.
 | [ccusage](https://github.com/ryoppippi/ccusage) | Primary inspiration — referenced its Rust source for JSONL entry structure, `requestId` deduplication strategy, sidechain filtering, and subagent path discovery |
 | [Claude Code](https://claude.ai/code) | Entire codebase written via AI-assisted development with Claude Sonnet |
 
+## Roadmap
+
+- [ ] Multiple Claude accounts / data directories
+- [ ] Usage alerts and spending limits
+- [ ] Charts and historical graphs
+- [ ] Windows / Linux support
+
+## Contributing
+
+Feature ideas, bug reports, and pull requests are welcome. If you'd like to work on any roadmap item — or have an idea not listed — please [open an issue](https://github.com/yettimon/claude-usage-tracker-bar/issues) to discuss it first. PRs without a linked issue may be closed without review.
+
+To build locally see the **Build from source** section above.
+
 ## Disclaimer
 
 This is an unofficial tool and is not affiliated with or endorsed by Anthropic. The menu bar icon is derived from Anthropic's Claude brand assets and is used for identification purposes only.
@@ -77,4 +90,4 @@ Cost estimates may differ from actual Anthropic billing. Token counts are read d
 
 ## License
 
-MIT
+[MIT](LICENSE)
