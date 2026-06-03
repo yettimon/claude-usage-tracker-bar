@@ -41,6 +41,9 @@ targets:
     deploymentTarget: "13.0"
     sources:
       - path: ClaudeUsageTrackerBarTests
+        includes:
+          - "**/*.swift"
+          - "Fixtures/**"
     dependencies:
       - target: ClaudeUsageTrackerBar
     settings:
