@@ -45,9 +45,13 @@ enum JournalParser {
             let usage = message["usage"] as? [String: Any]
         else { return nil }
 
+        let model = message["model"] as? String ?? "unknown"
+        // Skip synthetic/internal entries — not real API calls
+        guard !model.hasPrefix("<") else { return nil }
+
         return JournalEntry(
             timestamp: timestamp,
-            model: message["model"] as? String ?? "unknown",
+            model: model,
             inputTokens: usage["input_tokens"] as? Int ?? 0,
             outputTokens: usage["output_tokens"] as? Int ?? 0,
             cacheWriteTokens: usage["cache_creation_input_tokens"] as? Int ?? 0,

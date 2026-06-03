@@ -70,13 +70,18 @@ struct UsageSectionView: View {
                 StatRowView(label: "Cache read", value: formatTokens(summary.cacheReadTokens))
 
                 if !summary.modelsUsed.isEmpty {
-                    HStack(spacing: 4) {
+                    LazyVGrid(
+                        columns: [GridItem(.adaptive(minimum: 72, maximum: 140))],
+                        alignment: .leading,
+                        spacing: 4
+                    ) {
                         ForEach(summary.modelsUsed, id: \.self) { model in
                             Text(model.replacingOccurrences(of: "claude-", with: ""))
                                 .font(.system(size: 10))
                                 .foregroundStyle(.secondary)
                                 .padding(.horizontal, 5)
                                 .padding(.vertical, 2)
+                                .frame(maxWidth: .infinity)
                                 .background(Color.secondary.opacity(0.12))
                                 .clipShape(RoundedRectangle(cornerRadius: 3))
                         }

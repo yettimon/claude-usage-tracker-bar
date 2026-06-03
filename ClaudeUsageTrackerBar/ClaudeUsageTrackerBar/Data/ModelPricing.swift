@@ -28,6 +28,12 @@ enum ModelPricing {
             cacheWritePerMToken: 18.75,
             cacheReadPerMToken: 1.50
         ),
+        "claude-opus-4-7": ModelPrice(
+            inputPerMToken: 15.0,
+            outputPerMToken: 75.0,
+            cacheWritePerMToken: 18.75,
+            cacheReadPerMToken: 1.50
+        ),
         "claude-sonnet-4-6": ModelPrice(
             inputPerMToken: 3.0,
             outputPerMToken: 15.0,
