@@ -7,10 +7,12 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		0F6349BCD14BA58B946D6590 /* UsageSummary.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9CF8C293FCCAD0CE2A0A2DC9 /* UsageSummary.swift */; };
 		37A6BFA7FA54FF4D1A3E9E0C /* ClaudeUsageTrackerBarTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 30702EA54DFCC72A81C88AC8 /* ClaudeUsageTrackerBarTests.swift */; };
 		4BD3DCD01CADF2141E94AEAE /* ClaudeUsageTrackerBarApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 47FB8D0291560756865230AD /* ClaudeUsageTrackerBarApp.swift */; };
 		6446B0536EED7BB51E87A402 /* CoreServices.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 2474D14CA6FE96B0DB1D6DC8 /* CoreServices.framework */; };
 		E05B0120203A8F0C08977456 /* ServiceManagement.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 03A119C7D9E8051C55C7BCE6 /* ServiceManagement.framework */; };
+		F6AD3701E65434DADB8DEB4E /* JournalEntry.swift in Sources */ = {isa = PBXBuildFile; fileRef = 61B1E75EF849C307F63A6954 /* JournalEntry.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -29,6 +31,8 @@
 		2C7B8A447FD11A2FC6A1C060 /* ClaudeUsageTrackerBarTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = ClaudeUsageTrackerBarTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		30702EA54DFCC72A81C88AC8 /* ClaudeUsageTrackerBarTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClaudeUsageTrackerBarTests.swift; sourceTree = "<group>"; };
 		47FB8D0291560756865230AD /* ClaudeUsageTrackerBarApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClaudeUsageTrackerBarApp.swift; sourceTree = "<group>"; };
+		61B1E75EF849C307F63A6954 /* JournalEntry.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JournalEntry.swift; sourceTree = "<group>"; };
+		9CF8C293FCCAD0CE2A0A2DC9 /* UsageSummary.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UsageSummary.swift; sourceTree = "<group>"; };
 		C7E5231D178BA18D0B93C8D0 /* ClaudeUsageTrackerBar.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = ClaudeUsageTrackerBar.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		DEFB4AA08482CE295D97D5FF /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -62,6 +66,15 @@
 			path = App;
 			sourceTree = "<group>";
 		};
+		9BF53236F1508681F09FF947 /* Model */ = {
+			isa = PBXGroup;
+			children = (
+				61B1E75EF849C307F63A6954 /* JournalEntry.swift */,
+				9CF8C293FCCAD0CE2A0A2DC9 /* UsageSummary.swift */,
+			);
+			path = Model;
+			sourceTree = "<group>";
+		};
 		B550F06CA01C1B72CD957AE5 /* Products */ = {
 			isa = PBXGroup;
 			children = (
@@ -76,6 +89,7 @@
 			children = (
 				DEFB4AA08482CE295D97D5FF /* Info.plist */,
 				8A85683F5383F3FAF439BF16 /* App */,
+				9BF53236F1508681F09FF947 /* Model */,
 			);
 			path = ClaudeUsageTrackerBar;
 			sourceTree = "<group>";
@@ -174,6 +188,8 @@
 			buildActionMask = 2147483647;
 			files = (
 				4BD3DCD01CADF2141E94AEAE /* ClaudeUsageTrackerBarApp.swift in Sources */,
+				F6AD3701E65434DADB8DEB4E /* JournalEntry.swift in Sources */,
+				0F6349BCD14BA58B946D6590 /* UsageSummary.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
