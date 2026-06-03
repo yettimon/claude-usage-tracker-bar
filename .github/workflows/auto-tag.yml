@@ -1,4 +1,4 @@
-name: Auto Tag on Main
+name: Auto Release on Main
 
 on:
   push:
@@ -6,8 +6,8 @@ on:
       - main
 
 jobs:
-  tag:
-    runs-on: ubuntu-latest
+  release:
+    runs-on: macos-14
     permissions:
       contents: write
 
@@ -16,7 +16,8 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Bump patch version and push tag
+      - name: Compute next patch tag
+        id: tag
         run: |
           latest=$(git tag --sort=-v:refname | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+$' | head -1)
           if [ -z "$latest" ]; then
@@ -27,7 +28,59 @@ jobs:
           patch=$(echo "$latest" | cut -d. -f3)
           new_tag="v${major}.${minor}.$((patch + 1))"
           echo "Latest: $latest → New: $new_tag"
+          echo "new_tag=$new_tag" >> "$GITHUB_OUTPUT"
+
+      - name: Select Xcode
+        run: sudo xcode-select -s /Applications/Xcode.app
+
+      - name: Install xcodegen
+        run: brew install xcodegen
+
+      - name: Generate Xcode project
+        run: |
+          xcodegen generate
+          PBXPROJ="ClaudeUsageTrackerBar.xcodeproj/project.pbxproj"
+          sed -i '' 's/objectVersion = 77;/objectVersion = 55;/' "$PBXPROJ"
+          sed -i '' '/preferredProjectObjectVersion = [0-9]*;/d' "$PBXPROJ"
+
+      - name: Build (unsigned)
+        run: |
+          xcodebuild build \
+            -scheme ClaudeUsageTrackerBar \
+            -configuration Release \
+            -derivedDataPath build/DerivedData \
+            CODE_SIGN_IDENTITY="" \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGNING_ALLOWED=NO
+
+      - name: Ad-hoc sign
+        run: |
+          APP="build/DerivedData/Build/Products/Release/ClaudeUsageTrackerBar.app"
+          codesign --deep --force --sign - "$APP"
+
+      - name: Package as DMG
+        run: |
+          APP="build/DerivedData/Build/Products/Release/ClaudeUsageTrackerBar.app"
+          TAG="${{ steps.tag.outputs.new_tag }}"
+          hdiutil create \
+            -volname "Claude Usage Tracker Bar" \
+            -srcfolder "$APP" \
+            -ov -format UDZO \
+            "ClaudeUsageTrackerBar-${TAG}.dmg"
+
+      - name: Create tag
+        run: |
+          TAG="${{ steps.tag.outputs.new_tag }}"
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git tag "$new_tag"
-          git push origin "$new_tag"
+          git tag "$TAG"
+          git push origin "$TAG"
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.tag.outputs.new_tag }}
+          files: "ClaudeUsageTrackerBar-${{ steps.tag.outputs.new_tag }}.dmg"
+          generate_release_notes: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
