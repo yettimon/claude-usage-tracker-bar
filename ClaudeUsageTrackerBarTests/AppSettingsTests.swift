@@ -7,6 +7,15 @@ final class AppSettingsTests: XCTestCase {
         super.setUp()
         UserDefaults.standard.removeObject(forKey: "showInMenuBar")
         UserDefaults.standard.removeObject(forKey: "menuBarDisplay")
+        UserDefaults.standard.removeObject(forKey: "launchAtLogin")
+        UserDefaults.standard.removeObject(forKey: "debugMode")
+        UserDefaults.standard.removeObject(forKey: "animateUpdates")
+    }
+
+    override func tearDown() {
+        UserDefaults.standard.removeObject(forKey: "showInMenuBar")
+        UserDefaults.standard.removeObject(forKey: "menuBarDisplay")
+        super.tearDown()
     }
 
     func test_showInMenuBar_defaultsFalse() {

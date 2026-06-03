@@ -13,8 +13,8 @@ final class AppSettings: ObservableObject {
     @Published private(set) var launchAtLogin: Bool
     @Published var debugMode: Bool
     @Published var animateUpdates: Bool
-    @Published var showInMenuBar: Bool
-    @Published var menuBarDisplay: MenuBarDisplay
+    @Published private(set) var showInMenuBar: Bool
+    @Published private(set) var menuBarDisplay: MenuBarDisplay
 
     init() {
         let stored = UserDefaults.standard.object(forKey: "launchAtLogin") as? Bool
