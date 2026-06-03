@@ -97,15 +97,13 @@ struct UsageSectionView: View {
                 }
             }
         }
-        .onAppear { update(to: summary) }
-        .onChange(of: summary) { newSummary in update(to: newSummary) }
-    }
-
-    private func update(to target: UsageSummary) {
-        if animateUpdates {
-            withAnimation(.spring(duration: 0.6)) { displayed = target }
-        } else {
-            displayed = target
+        .onAppear { displayed = summary }
+        .onChange(of: summary) { newSummary in
+            if animateUpdates {
+                withAnimation(.spring(duration: 0.6)) { displayed = newSummary }
+            } else {
+                displayed = newSummary
+            }
         }
     }
 
