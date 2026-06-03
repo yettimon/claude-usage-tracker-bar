@@ -118,7 +118,9 @@ struct UsageSectionView: View {
 
     private func formatTokens(_ n: Int) -> String {
         if debugMode {
-            return "\(n)"
+            let formatter = NumberFormatter()
+            formatter.numberStyle = .decimal
+            return formatter.string(from: NSNumber(value: n)) ?? "\(n)"
         }
         switch n {
         case 1_000_000...: return String(format: "%.1fM", Double(n) / 1_000_000)
