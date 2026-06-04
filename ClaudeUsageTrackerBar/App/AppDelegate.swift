@@ -5,8 +5,8 @@ import Combine
 final class AppDelegate: NSObject, NSApplicationDelegate {
     private var statusItem: NSStatusItem?
     private var popover: NSPopover?
-    private let store = UsageStore()
     private let settings = AppSettings()
+    private lazy var store = UsageStore(settings: settings)
     private var cancellables = Set<AnyCancellable>()
 
     func applicationDidFinishLaunching(_ notification: Notification) {
@@ -41,13 +41,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     private func setupMenuBarObservers() {
-        Publishers.CombineLatest3(
-            store.$today,
-            settings.$showInMenuBar,
-            settings.$menuBarDisplay
+        Publishers.CombineLatest(
+            Publishers.CombineLatest3(store.$today, settings.$showInMenuBar, settings.$menuBarDisplay),
+            Publishers.CombineLatest(settings.$menuBarCustomColor, settings.$menuBarColorHex)
         )
         .receive(on: DispatchQueue.main)
-        .sink { [weak self] _, _, _ in
+        .sink { [weak self] _, _ in
             self?.updateMenuBarTitle()
         }
         .store(in: &cancellables)
@@ -62,22 +61,22 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         }
         button.imagePosition = .imageLeft
         let text: String
-        let color: NSColor
         switch settings.menuBarDisplay {
         case .cost:
             text = " " + String(format: "$%.2f", store.today.totalCost)
-            color = NSColor(red: 0x34 / 255.0, green: 0xC7 / 255.0, blue: 0x59 / 255.0, alpha: 1)
         case .tokens:
             let total = store.today.inputTokens + store.today.outputTokens
                 + store.today.cacheWriteTokens + store.today.cacheReadTokens
             text = " " + formatTokens(total)
-            color = .labelColor
         }
+        let color: NSColor = settings.menuBarCustomColor
+            ? NSColor(Color(hex: settings.menuBarColorHex))
+            : .labelColor
         button.attributedTitle = NSAttributedString(
             string: text,
             attributes: [
                 .foregroundColor: color,
-                .font: NSFont.systemFont(ofSize: 12, weight: .regular)
+                .font: NSFont.systemFont(ofSize: 12, weight: .bold)
             ]
         )
     }

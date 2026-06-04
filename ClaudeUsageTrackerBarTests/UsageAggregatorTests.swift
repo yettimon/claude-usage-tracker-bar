@@ -10,7 +10,8 @@ final class UsageAggregatorTests: XCTestCase {
         hoursAgo: Double,
         model: String = "claude-sonnet-4-6",
         inputTokens: Int = 100,
-        outputTokens: Int = 50
+        outputTokens: Int = 50,
+        costUSD: Double? = nil
     ) -> JournalEntry {
         JournalEntry(
             timestamp: referenceDate.addingTimeInterval(-hoursAgo * 3600),
@@ -18,7 +19,8 @@ final class UsageAggregatorTests: XCTestCase {
             inputTokens: inputTokens,
             outputTokens: outputTokens,
             cacheWriteTokens: 0,
-            cacheReadTokens: 0
+            cacheReadTokens: 0,
+            costUSD: costUSD
         )
     }
 
@@ -63,5 +65,35 @@ final class UsageAggregatorTests: XCTestCase {
         let result = UsageAggregator.aggregate(entries: [], referenceDate: referenceDate)
         XCTAssertEqual(result.today.totalCost, 0)
         XCTAssertEqual(result.allTime.modelsUsed, [])
+    }
+
+    func test_autoMode_prefersCostUSD_whenPresent() {
+        let entries = [makeEntry(hoursAgo: 1, inputTokens: 1_000_000, outputTokens: 0, costUSD: 9.99)]
+        let result = UsageAggregator.aggregate(entries: entries, referenceDate: referenceDate, costMode: .auto)
+        XCTAssertEqual(result.today.totalCost, 9.99, accuracy: 0.0001)
+    }
+
+    func test_autoMode_fallsBackToTokens_whenNoCostUSD() {
+        let entries = [makeEntry(hoursAgo: 1, inputTokens: 1_000_000, outputTokens: 0)]
+        let result = UsageAggregator.aggregate(entries: entries, referenceDate: referenceDate, costMode: .auto)
+        XCTAssertEqual(result.today.totalCost, 3.0, accuracy: 0.0001)
+    }
+
+    func test_calculateMode_ignoresCostUSD() {
+        let entries = [makeEntry(hoursAgo: 1, inputTokens: 1_000_000, outputTokens: 0, costUSD: 9.99)]
+        let result = UsageAggregator.aggregate(entries: entries, referenceDate: referenceDate, costMode: .calculate)
+        XCTAssertEqual(result.today.totalCost, 3.0, accuracy: 0.0001)
+    }
+
+    func test_displayMode_usesCostUSD() {
+        let entries = [makeEntry(hoursAgo: 1, inputTokens: 1_000_000, outputTokens: 0, costUSD: 9.99)]
+        let result = UsageAggregator.aggregate(entries: entries, referenceDate: referenceDate, costMode: .display)
+        XCTAssertEqual(result.today.totalCost, 9.99, accuracy: 0.0001)
+    }
+
+    func test_displayMode_returnsZero_whenNoCostUSD() {
+        let entries = [makeEntry(hoursAgo: 1, inputTokens: 1_000_000, outputTokens: 0)]
+        let result = UsageAggregator.aggregate(entries: entries, referenceDate: referenceDate, costMode: .display)
+        XCTAssertEqual(result.today.totalCost, 0, accuracy: 0.0001)
     }
 }

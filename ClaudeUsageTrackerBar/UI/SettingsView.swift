@@ -1,8 +1,41 @@
 import SwiftUI
 
+private let changelog: [(version: String, date: String, items: [String])] = [
+    ("0.1.6", "Jun 2025", [
+        "LiteLLM pricing integration with 24h cache and automatic fallback",
+        "Cost calculation modes: Auto, Calculate, Display only",
+        "Adaptive menu bar text color (light/dark mode), bold weight",
+        "Custom color picker for menu bar text",
+        "What's New popover in Settings",
+        "Smaller toggles and square color swatch in Settings",
+        "Version synced to git tags via CI"
+    ]),
+    ("0.1.5", "Jun 2025", [
+        "Show cost or token usage next to menu bar icon",
+        "Animate updates when popup opens",
+        "Debug mode with exact token counts",
+        "Launch at login support"
+    ])
+]
+
 struct SettingsView: View {
     @ObservedObject var settings: AppSettings
+    @ObservedObject private var pricing = LiteLLMPricing.shared
     let onBack: () -> Void
+
+    @State private var showChangelog = false
+
+    private var appVersion: String {
+        Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "—"
+    }
+
+    private var pricingStatus: String {
+        guard let date = pricing.lastUpdated else { return "Not loaded" }
+        let count = pricing.modelCount > 0 ? " · \(pricing.modelCount) models" : ""
+        let formatter = RelativeDateTimeFormatter()
+        formatter.unitsStyle = .abbreviated
+        return "Updated \(formatter.localizedString(for: date, relativeTo: Date()))\(count)"
+    }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
@@ -79,6 +112,59 @@ struct SettingsView: View {
             .padding(.horizontal, 14)
             .padding(.vertical, 10)
 
+            if settings.showInMenuBar {
+                Divider().opacity(0.25)
+
+                HStack {
+                    Text("Custom color")
+                        .font(.system(size: 12))
+                    Spacer()
+                    Toggle("", isOn: Binding(
+                        get: { settings.menuBarCustomColor },
+                        set: { settings.setMenuBarCustomColor($0) }
+                    ))
+                    .labelsHidden()
+                    .toggleStyle(.switch)
+                    if settings.menuBarCustomColor {
+                        SquareColorWell(color: Binding(
+                            get: { Color(hex: settings.menuBarColorHex) },
+                            set: { settings.setMenuBarColorHex($0.hexString) }
+                        ))
+                        .frame(width: 28, height: 20)
+                    }
+                }
+                .padding(.horizontal, 14)
+                .padding(.vertical, 10)
+            }
+
+            Divider().opacity(0.25)
+
+            HStack {
+                Text("Cost calculation")
+                    .font(.system(size: 12))
+                Spacer()
+                Picker("", selection: Binding(
+                    get: { settings.costMode },
+                    set: { settings.setCostMode($0) }
+                )) {
+                    Text("Auto").tag(CostMode.auto)
+                    Text("Calculate").tag(CostMode.calculate)
+                    Text("Display only").tag(CostMode.display)
+                }
+                .labelsHidden()
+                .pickerStyle(.menu)
+                .frame(maxWidth: 110)
+            }
+            .padding(.horizontal, 14)
+            .padding(.vertical, 10)
+
+            Text("Auto: uses billed cost if available, else calculates from tokens")
+                .font(.system(size: 10))
+                .foregroundStyle(.secondary)
+                .fixedSize(horizontal: false, vertical: true)
+                .padding(.horizontal, 14)
+                .padding(.bottom, 10)
+
             Divider().opacity(0.25)
 
             HStack {
@@ -100,7 +186,87 @@ struct SettingsView: View {
                 .foregroundStyle(.secondary)
                 .padding(.horizontal, 14)
                 .padding(.bottom, 10)
+
+            if settings.debugMode {
+                HStack {
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("Pricing data (LiteLLM)")
+                            .font(.system(size: 12))
+                        Text(pricingStatus)
+                            .font(.system(size: 10))
+                            .foregroundStyle(.secondary)
+                    }
+                    Spacer()
+                    Button(pricing.isRefreshing ? "Updating…" : "Refresh") {
+                        pricing.forceRefresh()
+                    }
+                    .font(.system(size: 12))
+                    .buttonStyle(.plain)
+                    .foregroundStyle(pricing.isRefreshing ? Color.secondary : Color.blue)
+                    .disabled(pricing.isRefreshing)
+                }
+                .padding(.horizontal, 14)
+                .padding(.vertical, 10)
+            }
+
+            Divider().opacity(0.25)
+
+            HStack {
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("Claude Usage Tracker")
+                        .font(.system(size: 12, weight: .semibold))
+                    Text("v\(appVersion)")
+                        .font(.system(size: 10))
+                        .foregroundStyle(.secondary)
+                }
+                Spacer()
+                Button("What's New") { showChangelog = true }
+                    .font(.system(size: 12))
+                    .buttonStyle(.plain)
+                    .foregroundStyle(.blue)
+                    .popover(isPresented: $showChangelog, arrowEdge: .trailing) {
+                        ChangelogPopover()
+                    }
+            }
+            .padding(.horizontal, 14)
+            .padding(.vertical, 10)
         }
         .frame(width: 280)
+        .environment(\.controlSize, .small)
+    }
+}
+
+private struct ChangelogPopover: View {
+    var body: some View {
+        ScrollView {
+            VStack(alignment: .leading, spacing: 12) {
+                Text("What's New")
+                    .font(.system(size: 13, weight: .semibold))
+
+                ForEach(changelog, id: \.version) { entry in
+                    VStack(alignment: .leading, spacing: 5) {
+                        HStack(alignment: .firstTextBaseline, spacing: 6) {
+                            Text("v\(entry.version)")
+                                .font(.system(size: 12, weight: .semibold))
+                            Text(entry.date)
+                                .font(.system(size: 11))
+                                .foregroundStyle(.secondary)
+                        }
+                        ForEach(entry.items, id: \.self) { item in
+                            HStack(alignment: .top, spacing: 6) {
+                                Text("•")
+                                    .font(.system(size: 11))
+                                    .foregroundStyle(.secondary)
+                                Text(item)
+                                    .font(.system(size: 11))
+                                    .fixedSize(horizontal: false, vertical: true)
+                            }
+                        }
+                    }
+                }
+            }
+            .padding(16)
+        }
+        .frame(width: 240)
     }
 }

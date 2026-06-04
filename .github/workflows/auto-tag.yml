@@ -43,6 +43,12 @@ jobs:
           sed -i '' 's/objectVersion = 77;/objectVersion = 55;/' "$PBXPROJ"
           sed -i '' '/preferredProjectObjectVersion = [0-9]*;/d' "$PBXPROJ"
 
+      - name: Inject version into plist
+        run: |
+          VERSION="${{ steps.tag.outputs.new_tag }}"
+          VERSION="${VERSION#v}"
+          /usr/libexec/PlistBuddy -c "Set :CFBundleShortVersionString $VERSION" ClaudeUsageTrackerBar/Info.plist
+
       - name: Build (unsigned)
         run: |
           xcodebuild build \
