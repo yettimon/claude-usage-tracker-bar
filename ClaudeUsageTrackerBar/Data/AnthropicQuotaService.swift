@@ -41,7 +41,7 @@ private struct ApiResponseDTO: Decodable {
 
 private struct TokenRefreshResponse: Decodable {
     let accessToken: String
-    let expiresIn: Int
+    let expiresIn: Int  // seconds, per OAuth spec
     enum CodingKeys: String, CodingKey {
         case accessToken = "access_token"
         case expiresIn = "expires_in"
@@ -91,7 +91,11 @@ final class AnthropicQuotaService: QuotaFetching {
         json["claudeAiOauth"] = oauth
         guard let newData = try? JSONSerialization.data(withJSONObject: json) else { return }
         let query: [CFString: Any] = [kSecClass: kSecClassGenericPassword, kSecAttrService: keychainService]
-        SecItemUpdate(query as CFDictionary, [kSecValueData: newData] as CFDictionary)
+        let status = SecItemUpdate(query as CFDictionary, [kSecValueData: newData] as CFDictionary)
+        if status != errSecSuccess {
+            // Log failure without token value. Next launch will re-read stale credentials and re-refresh.
+            print("AnthropicQuotaService: Keychain update failed (\(status))")
+        }
     }
 
     // MARK: - Token resolution
@@ -131,13 +135,13 @@ final class AnthropicQuotaService: QuotaFetching {
         var request = URLRequest(url: usageURL)
         request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
         request.setValue("oauth-2025-04-20", forHTTPHeaderField: "anthropic-beta")
-        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
 
         guard let (data, response) = try? await URLSession.shared.data(for: request) else {
             return .failure(.networkError)
         }
         let statusCode = (response as? HTTPURLResponse)?.statusCode ?? 0
         if statusCode == 429 { return .failure(.rateLimited) }
+        // TODO: map 401 → .notSignedIn once QuotaStore can surface re-login prompt
         if statusCode != 200 { return .failure(.networkError) }
 
         return Self.decode(responseData: data, fetchedAt: Date())
