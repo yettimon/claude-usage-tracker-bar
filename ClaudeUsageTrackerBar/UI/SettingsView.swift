@@ -161,6 +161,29 @@ struct SettingsView: View {
             Text("Auto: uses billed cost if available, else calculates from tokens")
                 .font(.system(size: 10))
                 .foregroundStyle(.secondary)
+                .fixedSize(horizontal: false, vertical: true)
+                .padding(.horizontal, 14)
+                .padding(.bottom, 10)
+
+            Divider().opacity(0.25)
+
+            HStack {
+                Text("Debug mode")
+                    .font(.system(size: 12))
+                Spacer()
+                Toggle("", isOn: Binding(
+                    get: { settings.debugMode },
+                    set: { settings.setDebugMode($0) }
+                ))
+                .labelsHidden()
+                .toggleStyle(.switch)
+            }
+            .padding(.horizontal, 14)
+            .padding(.vertical, 10)
+
+            Text("Shows exact token counts instead of K/M abbreviations")
+                .font(.system(size: 10))
+                .foregroundStyle(.secondary)
                 .padding(.horizontal, 14)
                 .padding(.bottom, 10)
 
@@ -185,28 +208,6 @@ struct SettingsView: View {
                 .padding(.horizontal, 14)
                 .padding(.vertical, 10)
             }
-
-            Divider().opacity(0.25)
-
-            HStack {
-                Text("Debug mode")
-                    .font(.system(size: 12))
-                Spacer()
-                Toggle("", isOn: Binding(
-                    get: { settings.debugMode },
-                    set: { settings.setDebugMode($0) }
-                ))
-                .labelsHidden()
-                .toggleStyle(.switch)
-            }
-            .padding(.horizontal, 14)
-            .padding(.vertical, 10)
-
-            Text("Shows exact token counts instead of K/M abbreviations")
-                .font(.system(size: 10))
-                .foregroundStyle(.secondary)
-                .padding(.horizontal, 14)
-                .padding(.bottom, 10)
 
             Divider().opacity(0.25)
 
