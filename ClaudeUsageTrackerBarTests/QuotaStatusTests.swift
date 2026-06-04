@@ -17,6 +17,12 @@ final class QuotaStatusTests: XCTestCase {
         XCTAssertNotEqual(a, b)
     }
 
+    func test_quotaWindow_notEqual_differentResetsAt() {
+        let a = QuotaWindow(utilization: 65.0, resetsAt: Date(timeIntervalSince1970: 1000))
+        let b = QuotaWindow(utilization: 65.0, resetsAt: Date(timeIntervalSince1970: 2000))
+        XCTAssertNotEqual(a, b)
+    }
+
     func test_quotaStatus_equatable() {
         let date = Date(timeIntervalSince1970: 1000)
         let window = QuotaWindow(utilization: 20.0, resetsAt: date)
