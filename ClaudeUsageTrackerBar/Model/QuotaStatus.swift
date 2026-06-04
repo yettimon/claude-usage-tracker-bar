@@ -11,7 +11,7 @@ struct QuotaStatus: Equatable {
     let fetchedAt: Date
 }
 
-enum QuotaError: Equatable {
+enum QuotaError: Error, Equatable {
     case notSignedIn
     case networkError
     case rateLimited
