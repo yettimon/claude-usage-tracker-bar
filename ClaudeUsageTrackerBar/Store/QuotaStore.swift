@@ -7,33 +7,27 @@ final class QuotaStore: ObservableObject {
     @Published var error: QuotaError?
 
     private let service: QuotaFetching
-    private let refreshInterval: TimeInterval = 120
-    private var timer: Timer?
+    private let staleThreshold: TimeInterval = 300  // 5 minutes
 
     init(service: QuotaFetching = AnthropicQuotaService(), fetchOnInit: Bool = true) {
         self.service = service
         if fetchOnInit {
             Task { await self.fetch() }
-            scheduleTimer()
         }
     }
 
-    deinit {
-        timer?.invalidate()
-    }
-
-    // Called on popover open — only fetches if data is stale or missing.
+    // Called on popover open — fetches only if data is missing or older than 5 minutes.
     func refreshIfStale() {
         guard let status else {
             Task { await fetch() }
             return
         }
-        if Date().timeIntervalSince(status.fetchedAt) > refreshInterval {
+        if Date().timeIntervalSince(status.fetchedAt) > staleThreshold {
             Task { await fetch() }
         }
     }
 
-    // Unconditional fetch — used by timer, init, and tests.
+    // Unconditional fetch — used by init and tests.
     func fetch() async {
         let result = await service.fetchQuota()
         switch result {
@@ -49,18 +43,9 @@ final class QuotaStore: ObservableObject {
     func setEnabled(_ enabled: Bool) {
         if enabled {
             Task { await fetch() }
-            scheduleTimer()
         } else {
-            timer?.invalidate()
-            timer = nil
             status = nil
             error = nil
-        }
-    }
-
-    private func scheduleTimer() {
-        timer = Timer.scheduledTimer(withTimeInterval: refreshInterval, repeats: true) { [weak self] _ in
-            Task { await self?.fetch() }
         }
     }
 }
