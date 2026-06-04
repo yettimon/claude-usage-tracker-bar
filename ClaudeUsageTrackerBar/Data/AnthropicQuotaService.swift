@@ -1,5 +1,6 @@
 import Foundation
 import Security
+import os
 
 // MARK: - Protocol (enables mock injection in QuotaStore tests)
 
@@ -48,13 +49,19 @@ private struct TokenRefreshResponse: Decodable {
     }
 }
 
+private let logger = Logger(subsystem: "com.yettimon.claude-usage-tracker-bar", category: "quota")
+
 // MARK: - Service
 
 final class AnthropicQuotaService: QuotaFetching {
 
     private let keychainService = "Claude Code-credentials"
+    // Claude Code stores the credential under the local username as the account name.
+    private let keychainAccount = NSUserName()
     private let usageURL = URL(string: "https://api.anthropic.com/api/oauth/usage")!
     private let tokenRefreshURL = URL(string: "https://console.anthropic.com/v1/oauth/token")!
+    // Ephemeral session: no disk cache, no shared cookie storage — Bearer tokens never touch disk.
+    private let session = URLSession(configuration: .ephemeral)
 
     func fetchQuota() async -> Result<QuotaStatus, QuotaError> {
         guard let token = await resolveToken() else {
@@ -69,6 +76,7 @@ final class AnthropicQuotaService: QuotaFetching {
         let query: [CFString: Any] = [
             kSecClass: kSecClassGenericPassword,
             kSecAttrService: keychainService,
+            kSecAttrAccount: keychainAccount,
             kSecReturnData: true,
             kSecMatchLimit: kSecMatchLimitOne
         ]
@@ -90,11 +98,15 @@ final class AnthropicQuotaService: QuotaFetching {
         oauth["expiresAt"] = expiresAt
         json["claudeAiOauth"] = oauth
         guard let newData = try? JSONSerialization.data(withJSONObject: json) else { return }
-        let query: [CFString: Any] = [kSecClass: kSecClassGenericPassword, kSecAttrService: keychainService]
+        let query: [CFString: Any] = [
+            kSecClass: kSecClassGenericPassword,
+            kSecAttrService: keychainService,
+            kSecAttrAccount: keychainAccount
+        ]
         let status = SecItemUpdate(query as CFDictionary, [kSecValueData: newData] as CFDictionary)
         if status != errSecSuccess {
-            // Log failure without token value. Next launch will re-read stale credentials and re-refresh.
-            print("AnthropicQuotaService: Keychain update failed (\(status))")
+            // OSStatus only — no token value logged.
+            logger.error("Keychain update failed: \(status)")
         }
     }
 
@@ -119,9 +131,10 @@ final class AnthropicQuotaService: QuotaFetching {
             "refresh_token": refreshToken,
             "grant_type": "refresh_token"
         ])
-        guard let (data, response) = try? await URLSession.shared.data(for: request),
+        guard let (data, response) = try? await session.data(for: request),
               (response as? HTTPURLResponse)?.statusCode == 200,
-              let dto = try? JSONDecoder().decode(TokenRefreshResponse.self, from: data) else {
+              let dto = try? JSONDecoder().decode(TokenRefreshResponse.self, from: data),
+              !dto.accessToken.isEmpty else {
             return nil
         }
         let newExpiresAt = (Date().timeIntervalSince1970 + Double(dto.expiresIn)) * 1000
@@ -136,7 +149,7 @@ final class AnthropicQuotaService: QuotaFetching {
         request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
         request.setValue("oauth-2025-04-20", forHTTPHeaderField: "anthropic-beta")
 
-        guard let (data, response) = try? await URLSession.shared.data(for: request) else {
+        guard let (data, response) = try? await session.data(for: request) else {
             return .failure(.networkError)
         }
         let statusCode = (response as? HTTPURLResponse)?.statusCode ?? 0

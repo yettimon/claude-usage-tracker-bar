@@ -173,15 +173,12 @@ struct QuotaProgressRowView: View {
             }
             .padding(.horizontal, 14)
 
-            GeometryReader { geo in
-                ZStack(alignment: .leading) {
-                    RoundedRectangle(cornerRadius: 2)
-                        .fill(Color.secondary.opacity(0.15))
-                        .frame(height: 4)
-                    RoundedRectangle(cornerRadius: 2)
-                        .fill(barColor(for: window.utilization))
-                        .frame(width: geo.size.width * min(window.utilization / 100.0, 1.0), height: 4)
-                }
+            ZStack(alignment: .leading) {
+                RoundedRectangle(cornerRadius: 2)
+                    .fill(Color.secondary.opacity(0.15))
+                RoundedRectangle(cornerRadius: 2)
+                    .fill(barColor(for: window.utilization))
+                    .scaleEffect(x: min(window.utilization / 100.0, 1.0), anchor: .leading)
             }
             .frame(height: 4)
             .padding(.horizontal, 14)
