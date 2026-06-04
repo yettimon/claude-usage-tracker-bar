@@ -12,7 +12,7 @@ A lightweight native macOS menu bar app that shows your [Claude Code](https://cl
 - **Three time windows** — Today, Last 30 Days, All Time
 - **Full token breakdown** — Input, Output, Cache Write, Cache Read, Total
 - **Models used** — displayed as compact tags per section
-- **Cost estimate** — calculated locally from Anthropic's published pricing
+- **Cost estimate** — calculated via [LiteLLM](https://github.com/BerriAI/litellm) pricing data (fetched on launch, cached 24h) with fallback to bundled rates
 - **Colored menu bar icon** — orange spark + gold coin stack, visible on any menu bar
 - **Launch at login** — enabled by default via SMAppService
 - **Debug mode** — shows exact token counts with thousands separators instead of K/M
@@ -54,9 +54,12 @@ Claude Code writes every API response to JSONL files under `~/.claude/projects/`
 2. Parses `assistant`-type entries, skipping synthetic/internal entries
 3. Deduplicates by `requestId`, keeping the entry with the highest total token count (streaming writes partial entries first)
 4. Aggregates into Today / Last 30 Days / All Time buckets
-5. Calculates cost using a local pricing table based on [Anthropic's published rates](https://www.anthropic.com/pricing)
+5. Calculates cost using one of three modes (configurable in Settings):
+   - **Auto** — uses `costUSD` from Claude Code data if present, else token-based calculation
+   - **Calculate** — always derives cost from token counts using [LiteLLM](https://github.com/BerriAI/litellm) pricing, fetched on launch and cached for 24 hours, falling back to a bundled table if offline
+   - **Display only** — shows `costUSD` from Claude Code data directly; `$0.00` for entries without it
 
-Costs are estimates. Cache write rates use the 5-minute TTL tier.
+Costs are estimates. Cache write rates use the 5-minute TTL tier. LiteLLM pricing data is fetched from [`model_prices_and_context_window.json`](https://github.com/BerriAI/litellm/blob/main/model_prices_and_context_window.json).
 
 ## Built with
 
@@ -67,7 +70,8 @@ Costs are estimates. Cache write rates use the 5-minute TTL tier.
 | [SMAppService](https://developer.apple.com/documentation/servicemanagement/smappservice) (ServiceManagement) | macOS 13+ API for launch-at-login without a helper bundle |
 | [XcodeGen](https://github.com/yonaskolb/XcodeGen) | Generates `ClaudeUsageTrackerBar.xcodeproj` from `project.yml` — no checked-in pbxproj noise |
 | [GitHub Actions](https://github.com/features/actions) | Unsigned DMG built and released automatically on every `v*` tag push |
-| [ccusage](https://github.com/ryoppippi/ccusage) | Primary inspiration — referenced its Rust source for JSONL entry structure, `requestId` deduplication strategy, sidechain filtering, and subagent path discovery |
+| [LiteLLM](https://github.com/BerriAI/litellm) | Model pricing data — `model_prices_and_context_window.json` fetched on launch, cached 24h, used for token-based cost calculation |
+| [ccusage](https://github.com/ryoppippi/ccusage) | Primary inspiration — referenced its source for JSONL entry structure, `requestId` deduplication strategy, sidechain filtering, subagent path discovery, and cost calculation modes |
 | [Claude Code](https://claude.ai/code) | Entire codebase written via AI-assisted development with Claude Sonnet |
 
 ## Roadmap
