@@ -7,7 +7,10 @@ final class QuotaStore: ObservableObject {
     @Published var error: QuotaError?
 
     private let service: QuotaFetching
-    private let staleThreshold: TimeInterval = 300  // 5 minutes
+    private let staleThreshold: TimeInterval = 300   // 5 minutes
+    private let rateLimitBackoff: TimeInterval = 300  // don't retry for 5 min after 429
+    private var isFetching = false
+    private var rateLimitedUntil: Date?
 
     init(service: QuotaFetching = AnthropicQuotaService(), fetchOnInit: Bool = true) {
         self.service = service
@@ -27,13 +30,24 @@ final class QuotaStore: ObservableObject {
         }
     }
 
-    // Unconditional fetch — used by init and tests.
+    // Unconditional fetch — skips if a fetch is already in flight or rate-limited.
     func fetch() async {
+        guard !isFetching else { return }
+        if let until = rateLimitedUntil, Date() < until { return }
+
+        isFetching = true
+        defer { isFetching = false }
+
         let result = await service.fetchQuota()
         switch result {
         case .success(let s):
             status = s
             error = nil
+            rateLimitedUntil = nil
+        case .failure(.rateLimited):
+            error = .rateLimited
+            rateLimitedUntil = Date().addingTimeInterval(rateLimitBackoff)
+            // preserve stale status
         case .failure(let e):
             error = e
             // preserve stale status so UI can show last-known data
@@ -46,6 +60,7 @@ final class QuotaStore: ObservableObject {
         } else {
             status = nil
             error = nil
+            rateLimitedUntil = nil
         }
     }
 }
