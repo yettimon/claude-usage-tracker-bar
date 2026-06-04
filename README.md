@@ -22,9 +22,9 @@ A lightweight native macOS menu bar app that shows your [Claude Code](https://cl
 ## Screenshots
 
 <p align="center">
-  <img src="docs/screenshots/popup.png" width="280" alt="Usage popup"/>
+  <img src="docs/screenshots/popup_new.png" width="280" alt="Usage popup"/>
   &nbsp;&nbsp;
-  <img src="docs/screenshots/settings.png" width="280" alt="Settings"/>
+  <img src="docs/screenshots/settings_new.png" width="280" alt="Settings"/>
 </p>
 
 ## Install
