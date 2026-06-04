@@ -3,18 +3,15 @@ import XCTest
 
 final class AppSettingsTests: XCTestCase {
 
+    private let keys = ["showInMenuBar", "menuBarDisplay", "launchAtLogin", "debugMode", "animateUpdates", "costMode"]
+
     override func setUp() {
         super.setUp()
-        UserDefaults.standard.removeObject(forKey: "showInMenuBar")
-        UserDefaults.standard.removeObject(forKey: "menuBarDisplay")
-        UserDefaults.standard.removeObject(forKey: "launchAtLogin")
-        UserDefaults.standard.removeObject(forKey: "debugMode")
-        UserDefaults.standard.removeObject(forKey: "animateUpdates")
+        keys.forEach { UserDefaults.standard.removeObject(forKey: $0) }
     }
 
     override func tearDown() {
-        UserDefaults.standard.removeObject(forKey: "showInMenuBar")
-        UserDefaults.standard.removeObject(forKey: "menuBarDisplay")
+        keys.forEach { UserDefaults.standard.removeObject(forKey: $0) }
         super.tearDown()
     }
 

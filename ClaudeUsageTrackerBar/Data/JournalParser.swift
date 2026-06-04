@@ -75,7 +75,8 @@ enum JournalParser {
             inputTokens: usage["input_tokens"] as? Int ?? 0,
             outputTokens: usage["output_tokens"] as? Int ?? 0,
             cacheWriteTokens: usage["cache_creation_input_tokens"] as? Int ?? 0,
-            cacheReadTokens: usage["cache_read_input_tokens"] as? Int ?? 0
+            cacheReadTokens: usage["cache_read_input_tokens"] as? Int ?? 0,
+            costUSD: obj["costUSD"] as? Double
         )
         return (obj["requestId"] as? String, entry)
     }
