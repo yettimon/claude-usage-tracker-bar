@@ -67,7 +67,14 @@ final class AnthropicQuotaService: QuotaFetching {
         guard let token = await resolveToken() else {
             return .failure(.notSignedIn)
         }
-        return await callUsageAPI(token: token)
+        let result = await callUsageAPI(token: token)
+        // 401: token may be revoked without being expired — force refresh and retry once.
+        if case .failure(.notSignedIn) = result,
+           let creds = readCredentials(),
+           let fresh = await refreshToken(refreshToken: creds.claudeAiOauth.refreshToken) {
+            return await callUsageAPI(token: fresh)
+        }
+        return result
     }
 
     // MARK: - Keychain
@@ -153,8 +160,9 @@ final class AnthropicQuotaService: QuotaFetching {
             return .failure(.networkError)
         }
         let statusCode = (response as? HTTPURLResponse)?.statusCode ?? 0
+        logger.debug("Usage API status: \(statusCode)")
         if statusCode == 429 { return .failure(.rateLimited) }
-        // TODO: map 401 → .notSignedIn once QuotaStore can surface re-login prompt
+        if statusCode == 401 { return .failure(.notSignedIn) }
         if statusCode != 200 { return .failure(.networkError) }
 
         return Self.decode(responseData: data, fetchedAt: Date())
