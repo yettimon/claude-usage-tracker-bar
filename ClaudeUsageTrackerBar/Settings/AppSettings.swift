@@ -24,6 +24,7 @@ final class AppSettings: ObservableObject {
     @Published var menuBarCustomColor: Bool
     @Published var menuBarColorHex: String
     @Published private(set) var costMode: CostMode
+    @Published private(set) var showQuota: Bool
 
     init() {
         let stored = UserDefaults.standard.object(forKey: "launchAtLogin") as? Bool
@@ -37,6 +38,7 @@ final class AppSettings: ObservableObject {
         menuBarColorHex = UserDefaults.standard.string(forKey: "menuBarColorHex") ?? "34C759"
         let rawCostMode = UserDefaults.standard.string(forKey: "costMode") ?? ""
         costMode = CostMode(rawValue: rawCostMode) ?? .auto
+        showQuota = UserDefaults.standard.object(forKey: "showQuota") as? Bool ?? true
         if stored == nil {
             applyLaunchAtLogin(true)
         }
@@ -79,6 +81,11 @@ final class AppSettings: ObservableObject {
     func setCostMode(_ mode: CostMode) {
         costMode = mode
         UserDefaults.standard.set(mode.rawValue, forKey: "costMode")
+    }
+
+    func setShowQuota(_ enabled: Bool) {
+        showQuota = enabled
+        UserDefaults.standard.set(enabled, forKey: "showQuota")
     }
 
     private func applyLaunchAtLogin(_ enabled: Bool) {

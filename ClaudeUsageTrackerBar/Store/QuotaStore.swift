@@ -46,6 +46,18 @@ final class QuotaStore: ObservableObject {
         }
     }
 
+    func setEnabled(_ enabled: Bool) {
+        if enabled {
+            Task { await fetch() }
+            scheduleTimer()
+        } else {
+            timer?.invalidate()
+            timer = nil
+            status = nil
+            error = nil
+        }
+    }
+
     private func scheduleTimer() {
         timer = Timer.scheduledTimer(withTimeInterval: refreshInterval, repeats: true) { [weak self] _ in
             Task { await self?.fetch() }

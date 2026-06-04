@@ -19,7 +19,9 @@ struct UsageView: View {
 
     private var mainView: some View {
         VStack(alignment: .leading, spacing: 0) {
-            QuotaSectionView(quotaStore: quotaStore)
+            if settings.showQuota {
+                QuotaSectionView(quotaStore: quotaStore)
+            }
             UsageSectionView(title: "Today", summary: store.today, debugMode: settings.debugMode, animateUpdates: settings.animateUpdates)
             Divider().opacity(0.25)
             UsageSectionView(title: "Last 30 Days", summary: store.last30Days, debugMode: settings.debugMode, animateUpdates: settings.animateUpdates)

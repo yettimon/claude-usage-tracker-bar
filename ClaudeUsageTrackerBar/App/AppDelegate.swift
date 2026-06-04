@@ -52,6 +52,14 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             self?.updateMenuBarTitle()
         }
         .store(in: &cancellables)
+
+        settings.$showQuota
+            .dropFirst()
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] enabled in
+                self?.quotaStore.setEnabled(enabled)
+            }
+            .store(in: &cancellables)
     }
 
     private func updateMenuBarTitle() {
@@ -97,7 +105,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             popover.performClose(nil)
         } else {
             store.refresh()
-            quotaStore.refreshIfStale()
+            if settings.showQuota { quotaStore.refreshIfStale() }
             popover?.show(relativeTo: button.bounds, of: button, preferredEdge: .minY)
             NSApp.activate(ignoringOtherApps: true)
         }
