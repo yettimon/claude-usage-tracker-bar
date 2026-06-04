@@ -168,6 +168,29 @@ struct SettingsView: View {
             Divider().opacity(0.25)
 
             HStack {
+                Text("Show quota")
+                    .font(.system(size: 12))
+                Spacer()
+                Toggle("", isOn: Binding(
+                    get: { settings.showQuota },
+                    set: { settings.setShowQuota($0) }
+                ))
+                .labelsHidden()
+                .toggleStyle(.switch)
+            }
+            .padding(.horizontal, 14)
+            .padding(.vertical, 10)
+
+            Text("5-hour and weekly usage bars (uses Claude Code OAuth credentials)")
+                .font(.system(size: 10))
+                .foregroundStyle(.secondary)
+                .fixedSize(horizontal: false, vertical: true)
+                .padding(.horizontal, 14)
+                .padding(.bottom, 10)
+
+            Divider().opacity(0.25)
+
+            HStack {
                 Text("Debug mode")
                     .font(.system(size: 12))
                 Spacer()

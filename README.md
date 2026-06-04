@@ -14,6 +14,7 @@ A lightweight native macOS menu bar app that shows your [Claude Code](https://cl
 - **Models used** — displayed as compact tags per section
 - **Cost estimate** — calculated via [LiteLLM](https://github.com/BerriAI/litellm) pricing data (fetched on launch, cached 24h) with fallback to bundled rates
 - **Colored menu bar icon** — orange spark + gold coin stack, visible on any menu bar
+- **Quota tracking** — 5-hour and weekly utilization bars fetched from Anthropic's usage endpoint, color-coded green / yellow / red with reset countdowns
 - **Launch at login** — enabled by default via SMAppService
 - **Debug mode** — shows exact token counts with thousands separators instead of K/M
 - **Animate updates** — numbers transition smoothly when new tokens arrive
@@ -21,9 +22,9 @@ A lightweight native macOS menu bar app that shows your [Claude Code](https://cl
 ## Screenshots
 
 <p align="center">
-  <img src="docs/screenshots/popup.png" width="280" alt="Usage popup"/>
+  <img src="docs/screenshots/popup_new.png" width="280" alt="Usage popup"/>
   &nbsp;&nbsp;
-  <img src="docs/screenshots/settings.png" width="280" alt="Settings"/>
+  <img src="docs/screenshots/settings_new.png" width="280" alt="Settings"/>
 </p>
 
 ## Install
@@ -61,6 +62,12 @@ Claude Code writes every API response to JSONL files under `~/.claude/projects/`
 
 Costs are estimates. Cache write rates use the 5-minute TTL tier. LiteLLM pricing data is fetched from [`model_prices_and_context_window.json`](https://github.com/BerriAI/litellm/blob/main/model_prices_and_context_window.json).
 
+### Quota tracking
+
+On popover open (and every 2 minutes), the app reads the OAuth credentials Claude Code stores in macOS Keychain (`Claude Code-credentials`) and calls `https://api.anthropic.com/api/oauth/usage` to fetch your current 5-hour and weekly utilization. The token is used only for this request and is never logged or persisted elsewhere. If the token is expired it is refreshed and written back to Keychain (keeping it in sync with Claude Code).
+
+> ⚠️ **Claude OAuth disclaimer.** This feature reuses the same OAuth credentials as the official Claude Code login — it authenticates an **Anthropic subscription account (Claude Pro / Max)**, not an API key. The usage endpoint (`/api/oauth/usage`) is **undocumented and unofficial**; using a subscription account this way may be against Anthropic's Terms of Service and **could result in your account being rate-limited, suspended, or banned.** This app is an independent, unofficial tool and is **not affiliated with or endorsed by Anthropic.** You use this feature entirely at your own risk — the author accepts **no responsibility** for any action Anthropic takes against your account. Disable quota tracking by… not worrying about it — no credentials are accessed unless the app is running.
+
 ## Built with
 
 | Tool | Purpose |
@@ -71,6 +78,7 @@ Costs are estimates. Cache write rates use the 5-minute TTL tier. LiteLLM pricin
 | [XcodeGen](https://github.com/yonaskolb/XcodeGen) | Generates `ClaudeUsageTrackerBar.xcodeproj` from `project.yml` — no checked-in pbxproj noise |
 | [GitHub Actions](https://github.com/features/actions) | Unsigned DMG built and released automatically on every `v*` tag push |
 | [LiteLLM](https://github.com/BerriAI/litellm) | Model pricing data — `model_prices_and_context_window.json` fetched on launch, cached 24h, used for token-based cost calculation |
+| [Security framework](https://developer.apple.com/documentation/security) (Keychain) | Reads Claude Code's OAuth credentials for quota tracking — token never stored outside Keychain |
 | [ccusage](https://github.com/ryoppippi/ccusage) | Primary inspiration — referenced its source for JSONL entry structure, `requestId` deduplication strategy, sidechain filtering, subagent path discovery, and cost calculation modes |
 | [Claude Code](https://claude.ai/code) | Entire codebase written via AI-assisted development with Claude Sonnet |
 

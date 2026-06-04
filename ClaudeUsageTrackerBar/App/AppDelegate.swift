@@ -2,11 +2,13 @@ import AppKit
 import SwiftUI
 import Combine
 
+@MainActor
 final class AppDelegate: NSObject, NSApplicationDelegate {
     private var statusItem: NSStatusItem?
     private var popover: NSPopover?
     private let settings = AppSettings()
     private lazy var store = UsageStore(settings: settings)
+    private lazy var quotaStore = QuotaStore()
     private var cancellables = Set<AnyCancellable>()
 
     func applicationDidFinishLaunching(_ notification: Notification) {
@@ -35,7 +37,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         let popover = NSPopover()
         popover.behavior = .transient
         popover.contentViewController = NSHostingController(
-            rootView: UsageView(store: store, settings: settings)
+            rootView: UsageView(store: store, quotaStore: quotaStore, settings: settings)
         )
         self.popover = popover
     }
@@ -50,6 +52,14 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             self?.updateMenuBarTitle()
         }
         .store(in: &cancellables)
+
+        settings.$showQuota
+            .dropFirst()
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] enabled in
+                self?.quotaStore.setEnabled(enabled)
+            }
+            .store(in: &cancellables)
     }
 
     private func updateMenuBarTitle() {
@@ -95,6 +105,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             popover.performClose(nil)
         } else {
             store.refresh()
+            if settings.showQuota { quotaStore.refreshIfStale() }
             popover?.show(relativeTo: button.bounds, of: button, preferredEdge: .minY)
             NSApp.activate(ignoringOtherApps: true)
         }

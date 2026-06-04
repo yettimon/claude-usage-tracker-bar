@@ -2,6 +2,7 @@ import SwiftUI
 
 struct UsageView: View {
     @ObservedObject var store: UsageStore
+    @ObservedObject var quotaStore: QuotaStore
     @ObservedObject var settings: AppSettings
     @State private var showSettings = false
 
@@ -18,6 +19,9 @@ struct UsageView: View {
 
     private var mainView: some View {
         VStack(alignment: .leading, spacing: 0) {
+            if settings.showQuota {
+                QuotaSectionView(quotaStore: quotaStore)
+            }
             UsageSectionView(title: "Today", summary: store.today, debugMode: settings.debugMode, animateUpdates: settings.animateUpdates)
             Divider().opacity(0.25)
             UsageSectionView(title: "Last 30 Days", summary: store.last30Days, debugMode: settings.debugMode, animateUpdates: settings.animateUpdates)
@@ -147,5 +151,120 @@ struct StatRowView: View {
         }
         .padding(.horizontal, 14)
         .padding(.vertical, 2)
+    }
+}
+
+// MARK: - Quota UI
+
+struct QuotaProgressRowView: View {
+    let label: String
+    let window: QuotaWindow
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 2) {
+            HStack {
+                Text(label)
+                    .font(.system(size: 12))
+                    .foregroundStyle(.secondary)
+                Spacer()
+                Text(String(format: "%.0f%%", window.utilization))
+                    .font(.system(size: 12, weight: .medium))
+                    .foregroundStyle(barColor(for: window.utilization))
+            }
+            .padding(.horizontal, 14)
+
+            ZStack(alignment: .leading) {
+                RoundedRectangle(cornerRadius: 2)
+                    .fill(Color.secondary.opacity(0.15))
+                RoundedRectangle(cornerRadius: 2)
+                    .fill(barColor(for: window.utilization))
+                    .scaleEffect(x: min(window.utilization / 100.0, 1.0), anchor: .leading)
+            }
+            .frame(height: 4)
+            .padding(.horizontal, 14)
+
+            Text(resetLabel(for: window.resetsAt))
+                .font(.system(size: 10))
+                .foregroundStyle(.secondary.opacity(0.7))
+                .padding(.horizontal, 14)
+        }
+    }
+
+    private func barColor(for utilization: Double) -> Color {
+        switch utilization {
+        case ..<50: return Color(hex: "34C759")
+        case ..<80: return .yellow
+        default:    return .red
+        }
+    }
+
+    private func resetLabel(for date: Date) -> String {
+        let interval = date.timeIntervalSinceNow
+        guard interval > 0 else { return "resetting…" }
+        let h = Int(interval / 3600)
+        let m = Int(interval.truncatingRemainder(dividingBy: 3600) / 60)
+        if h >= 24 {
+            let f = DateFormatter()
+            f.dateFormat = "EEE HH:mm"
+            return "resets \(f.string(from: date))"
+        }
+        return h > 0 ? "resets in \(h)h \(m)m" : "resets in \(m)m"
+    }
+}
+
+struct QuotaSectionView: View {
+    @ObservedObject var quotaStore: QuotaStore
+
+    var body: some View {
+        // Render nothing during initial load to avoid flash of empty section.
+        if quotaStore.status != nil || quotaStore.error != nil {
+            VStack(alignment: .leading, spacing: 0) {
+                Text("QUOTA")
+                    .font(.system(size: 10))
+                    .foregroundStyle(.secondary.opacity(0.7))
+                    .padding(.horizontal, 14)
+                    .padding(.top, 10)
+                    .padding(.bottom, 6)
+
+                contentView
+                    .padding(.bottom, 8)
+
+                Divider().opacity(0.25)
+            }
+        }
+    }
+
+    @ViewBuilder
+    private var contentView: some View {
+        if let status = quotaStore.status {
+            VStack(alignment: .leading, spacing: 8) {
+                if let fiveHour = status.fiveHour {
+                    QuotaProgressRowView(label: "5-hour", window: fiveHour)
+                }
+                if let sevenDay = status.sevenDay {
+                    QuotaProgressRowView(label: "Weekly", window: sevenDay)
+                }
+                if quotaStore.error != nil {
+                    Text("↻ unavailable")
+                        .font(.system(size: 10))
+                        .foregroundStyle(.secondary.opacity(0.5))
+                        .padding(.horizontal, 14)
+                }
+            }
+        } else {
+            // Error state, no cached data.
+            Text(errorMessage)
+                .font(.system(size: 11))
+                .foregroundStyle(.secondary)
+                .padding(.horizontal, 14)
+        }
+    }
+
+    private var errorMessage: String {
+        switch quotaStore.error {
+        case .notSignedIn: return "Sign in to Claude Code to see quota"
+        case .networkError, .rateLimited: return "Quota unavailable"
+        case nil: return ""
+        }
     }
 }
