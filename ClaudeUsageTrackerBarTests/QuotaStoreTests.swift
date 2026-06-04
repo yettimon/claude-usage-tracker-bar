@@ -15,6 +15,7 @@ final class MockQuotaService: QuotaFetching {
 
 // MARK: - Tests
 
+@MainActor
 final class QuotaStoreTests: XCTestCase {
 
     private func makeWindow(utilization: Double = 50) -> QuotaWindow {

@@ -1,6 +1,7 @@
 import Foundation
 import Combine
 
+@MainActor
 final class QuotaStore: ObservableObject {
     @Published var status: QuotaStatus?
     @Published var error: QuotaError?
@@ -17,6 +18,10 @@ final class QuotaStore: ObservableObject {
         }
     }
 
+    deinit {
+        timer?.invalidate()
+    }
+
     // Called on popover open — only fetches if data is stale or missing.
     func refreshIfStale() {
         guard let status else {
@@ -31,15 +36,13 @@ final class QuotaStore: ObservableObject {
     // Unconditional fetch — used by timer, init, and tests.
     func fetch() async {
         let result = await service.fetchQuota()
-        await MainActor.run { [weak self] in
-            switch result {
-            case .success(let s):
-                self?.status = s
-                self?.error = nil
-            case .failure(let e):
-                self?.error = e
-                // preserve stale status so UI can show last-known data
-            }
+        switch result {
+        case .success(let s):
+            status = s
+            error = nil
+        case .failure(let e):
+            error = e
+            // preserve stale status so UI can show last-known data
         }
     }
 
