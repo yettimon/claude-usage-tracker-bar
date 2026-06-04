@@ -2,6 +2,7 @@ import SwiftUI
 
 struct UsageView: View {
     @ObservedObject var store: UsageStore
+    @ObservedObject var quotaStore: QuotaStore
     @ObservedObject var settings: AppSettings
     @State private var showSettings = false
 
@@ -18,6 +19,7 @@ struct UsageView: View {
 
     private var mainView: some View {
         VStack(alignment: .leading, spacing: 0) {
+            QuotaSectionView(quotaStore: quotaStore)
             UsageSectionView(title: "Today", summary: store.today, debugMode: settings.debugMode, animateUpdates: settings.animateUpdates)
             Divider().opacity(0.25)
             UsageSectionView(title: "Last 30 Days", summary: store.last30Days, debugMode: settings.debugMode, animateUpdates: settings.animateUpdates)
