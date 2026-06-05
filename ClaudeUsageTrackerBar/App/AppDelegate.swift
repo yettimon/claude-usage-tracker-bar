@@ -6,6 +6,7 @@ import Combine
 final class AppDelegate: NSObject, NSApplicationDelegate {
     private var statusItem: NSStatusItem?
     private var popover: NSPopover?
+    private var onboardingWindow: NSWindow?
     private let settings = AppSettings()
     private lazy var store = UsageStore(settings: settings)
     private lazy var quotaStore = QuotaStore()
@@ -20,11 +21,34 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         showOnboardingIfNeeded()
     }
 
+    func showOnboarding() {
+        if let win = onboardingWindow {
+            win.makeKeyAndOrderFront(nil)
+            NSApp.activate(ignoringOtherApps: true)
+            return
+        }
+        let window = NSWindow(
+            contentRect: NSRect(x: 0, y: 0, width: 480, height: 360),
+            styleMask: [.titled, .closable],
+            backing: .buffered,
+            defer: false
+        )
+        window.title = "Welcome"
+        window.isReleasedWhenClosed = false
+        window.contentView = NSHostingView(rootView: OnboardingView {
+            UserDefaults.standard.set(true, forKey: "hasSeenOnboarding")
+            window.orderOut(nil)
+        })
+        window.center()
+        onboardingWindow = window
+        window.makeKeyAndOrderFront(nil)
+        NSApp.activate(ignoringOtherApps: true)
+    }
+
     private func showOnboardingIfNeeded() {
         guard !UserDefaults.standard.bool(forKey: "hasSeenOnboarding") else { return }
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
-            NSApp.activate(ignoringOtherApps: true)
-            NSApp.sendAction(Selector(("showSettingsWindow:")), to: nil, from: nil)
+            self.showOnboarding()
         }
     }
 
