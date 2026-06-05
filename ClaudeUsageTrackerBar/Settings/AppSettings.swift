@@ -25,6 +25,7 @@ final class AppSettings: ObservableObject {
     @Published var menuBarColorHex: String
     @Published private(set) var costMode: CostMode
     @Published private(set) var showQuota: Bool
+    @Published var scrollablePopup: Bool
 
     init() {
         let stored = UserDefaults.standard.object(forKey: "launchAtLogin") as? Bool
@@ -39,6 +40,7 @@ final class AppSettings: ObservableObject {
         let rawCostMode = UserDefaults.standard.string(forKey: "costMode") ?? ""
         costMode = CostMode(rawValue: rawCostMode) ?? .auto
         showQuota = UserDefaults.standard.object(forKey: "showQuota") as? Bool ?? true
+        scrollablePopup = UserDefaults.standard.bool(forKey: "scrollablePopup")
         if stored == nil {
             applyLaunchAtLogin(true)
         }
@@ -86,6 +88,11 @@ final class AppSettings: ObservableObject {
     func setShowQuota(_ enabled: Bool) {
         showQuota = enabled
         UserDefaults.standard.set(enabled, forKey: "showQuota")
+    }
+
+    func setScrollablePopup(_ enabled: Bool) {
+        scrollablePopup = enabled
+        UserDefaults.standard.set(enabled, forKey: "scrollablePopup")
     }
 
     private func applyLaunchAtLogin(_ enabled: Bool) {

@@ -109,6 +109,28 @@ struct SettingsView: View {
             Divider().opacity(0.25)
 
             HStack {
+                Text("Scrollable popup")
+                    .font(.system(size: 12))
+                Spacer()
+                Toggle("", isOn: Binding(
+                    get: { settings.scrollablePopup },
+                    set: { settings.setScrollablePopup($0) }
+                ))
+                .labelsHidden()
+                .toggleStyle(.switch)
+            }
+            .padding(.horizontal, 14)
+            .padding(.vertical, 10)
+
+            Text("Cap popup height and scroll instead of expanding")
+                .font(.system(size: 10))
+                .foregroundStyle(.secondary)
+                .padding(.horizontal, 14)
+                .padding(.bottom, 10)
+
+            Divider().opacity(0.25)
+
+            HStack {
                 Text("Show in menu bar")
                     .font(.system(size: 12))
                 Spacer()
