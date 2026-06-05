@@ -17,6 +17,20 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         setupPopover()
         setupMenuBarObservers()
         setupWakeObserver()
+        showOnboardingIfNeeded()
+    }
+
+    func showWelcome() {
+        NSApp.activate(ignoringOtherApps: true)
+        NSApp.sendAction(Selector(("showSettingsWindow:")), to: nil, from: nil)
+    }
+
+    private func showOnboardingIfNeeded() {
+        guard !UserDefaults.standard.bool(forKey: "hasSeenOnboarding") else { return }
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+            NSApp.activate(ignoringOtherApps: true)
+            NSApp.sendAction(Selector(("showSettingsWindow:")), to: nil, from: nil)
+        }
     }
 
     private func setupStatusItem() {

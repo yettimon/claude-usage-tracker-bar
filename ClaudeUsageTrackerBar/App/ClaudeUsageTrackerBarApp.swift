@@ -7,6 +7,7 @@ struct ClaudeUsageTrackerBarApp: App {
     var body: some Scene {
         Settings {
             OnboardingView {
+                UserDefaults.standard.set(true, forKey: "hasSeenOnboarding")
                 NSApp.keyWindow?.close()
             }
         }
