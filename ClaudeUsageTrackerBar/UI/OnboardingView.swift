@@ -13,7 +13,10 @@ struct OnboardingView: View {
                 case 0: OnboardingSlide1()
                 case 1: OnboardingSlide2()
                 case 2: OnboardingSlide3()
-                default: OnboardingSlide4()
+                case 3: OnboardingSlide4()
+                default:
+                    let _ = assertionFailure("Invalid onboarding step: \(step)")
+                    OnboardingSlide1()
                 }
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -87,7 +90,7 @@ private struct OnboardingSlide1: View {
                 Image(nsImage: icon)
                     .resizable()
                     .frame(width: 72, height: 72)
-                    .cornerRadius(16)
+                    .clipShape(RoundedRectangle(cornerRadius: 16))
             }
             Text("Welcome to Claude Usage Tracker")
                 .font(.system(size: 18, weight: .bold))
@@ -118,7 +121,7 @@ private struct OnboardingSlide2: View {
                     .resizable()
                     .aspectRatio(contentMode: .fit)
                     .frame(width: 75)
-                    .cornerRadius(8)
+                    .clipShape(RoundedRectangle(cornerRadius: 8))
                     .shadow(color: .black.opacity(0.4), radius: 6, x: 0, y: 3)
 
                 VStack(spacing: 7) {
@@ -149,7 +152,7 @@ private struct OnboardingSlide3: View {
                     .resizable()
                     .aspectRatio(contentMode: .fit)
                     .frame(width: 200)
-                    .cornerRadius(8)
+                    .clipShape(RoundedRectangle(cornerRadius: 8))
                     .shadow(color: .black.opacity(0.4), radius: 6, x: 0, y: 3)
 
                 VStack(alignment: .leading, spacing: 10) {
@@ -188,7 +191,7 @@ private struct OnboardingSlide4: View {
             }
             .padding(10)
             .background(Color.secondary.opacity(0.08))
-            .cornerRadius(8)
+            .clipShape(RoundedRectangle(cornerRadius: 8))
             .frame(maxWidth: 340)
         }
         .padding(24)
@@ -222,7 +225,7 @@ private struct OnboardingSectionCard: View {
         .padding(.horizontal, 8)
         .padding(.vertical, 6)
         .background(Color.secondary.opacity(0.08))
-        .cornerRadius(6)
+        .clipShape(RoundedRectangle(cornerRadius: 6))
     }
 }
 
