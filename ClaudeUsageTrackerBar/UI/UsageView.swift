@@ -18,22 +18,27 @@ struct UsageView: View {
     }
 
     private var mainView: some View {
-        ScrollView(.vertical, showsIndicators: false) {
-            VStack(alignment: .leading, spacing: 0) {
-                if settings.showQuota {
-                    QuotaSectionView(quotaStore: quotaStore)
-                }
-                UsageSectionView(title: "Today", summary: store.today, debugMode: settings.debugMode, animateUpdates: settings.animateUpdates)
-                Divider().opacity(0.25)
-                UsageSectionView(title: "Last 30 Days", summary: store.last30Days, debugMode: settings.debugMode, animateUpdates: settings.animateUpdates)
-                Divider().opacity(0.25)
-                UsageSectionView(title: "All Time", summary: store.allTime, debugMode: settings.debugMode, animateUpdates: settings.animateUpdates)
-                Divider().opacity(0.25)
-                menuRow("Settings") { showSettings = true }
-                menuRow("Quit", isDestructive: true) { NSApp.terminate(nil) }
+        let content = VStack(alignment: .leading, spacing: 0) {
+            if settings.showQuota {
+                QuotaSectionView(quotaStore: quotaStore)
+            }
+            UsageSectionView(title: "Today", summary: store.today, debugMode: settings.debugMode, animateUpdates: settings.animateUpdates)
+            Divider().opacity(0.25)
+            UsageSectionView(title: "Last 30 Days", summary: store.last30Days, debugMode: settings.debugMode, animateUpdates: settings.animateUpdates)
+            Divider().opacity(0.25)
+            UsageSectionView(title: "All Time", summary: store.allTime, debugMode: settings.debugMode, animateUpdates: settings.animateUpdates)
+            Divider().opacity(0.25)
+            menuRow("Settings") { showSettings = true }
+            menuRow("Quit", isDestructive: true) { NSApp.terminate(nil) }
+        }
+        return Group {
+            if settings.scrollablePopup {
+                ScrollView(.vertical, showsIndicators: false) { content }
+                    .frame(maxHeight: 500)
+            } else {
+                content
             }
         }
-        .frame(maxHeight: 600)
     }
 
     private func menuRow(_ label: String, isDestructive: Bool = false, action: @escaping () -> Void) -> some View {
