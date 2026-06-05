@@ -9,8 +9,9 @@ final class QuotaStore: ObservableObject {
     private let service: QuotaFetching
     private let staleThreshold: TimeInterval = 300   // 5 minutes
     private let rateLimitBackoff: TimeInterval = 300  // don't retry for 5 min after 429
-    private var isFetching = false
+    @Published private(set) var isFetching = false
     private var rateLimitedUntil: Date?
+    private var pendingRetry: Task<Void, Never>?
 
     init(service: QuotaFetching = AnthropicQuotaService(), fetchOnInit: Bool = true) {
         self.service = service
@@ -47,10 +48,15 @@ final class QuotaStore: ObservableObject {
         case .failure(.rateLimited):
             error = .rateLimited
             rateLimitedUntil = Date().addingTimeInterval(rateLimitBackoff)
-            // preserve stale status
+        case .failure(.notSignedIn):
+            error = .notSignedIn
+            // No cached data: schedule one silent retry after 3s — covers the window
+            // where the user just approved the keychain prompt and we need to re-fetch.
+            if status == nil {
+                scheduleRetry()
+            }
         case .failure(let e):
             error = e
-            // preserve stale status so UI can show last-known data
         }
     }
 
@@ -58,9 +64,21 @@ final class QuotaStore: ObservableObject {
         if enabled {
             Task { await fetch() }
         } else {
+            pendingRetry?.cancel()
+            pendingRetry = nil
             status = nil
             error = nil
             rateLimitedUntil = nil
+        }
+    }
+
+    private func scheduleRetry() {
+        pendingRetry?.cancel()
+        pendingRetry = Task {
+            try? await Task.sleep(for: .seconds(3))
+            guard !Task.isCancelled else { return }
+            await fetch()
+            pendingRetry = nil
         }
     }
 }

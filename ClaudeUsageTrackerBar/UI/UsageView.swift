@@ -217,7 +217,7 @@ struct QuotaSectionView: View {
 
     var body: some View {
         // Render nothing during initial load to avoid flash of empty section.
-        if quotaStore.status != nil || quotaStore.error != nil {
+        if quotaStore.status != nil || quotaStore.error != nil || quotaStore.isFetching {
             VStack(alignment: .leading, spacing: 0) {
                 Text("QUOTA")
                     .font(.system(size: 10))
@@ -245,26 +245,53 @@ struct QuotaSectionView: View {
                     QuotaProgressRowView(label: "Weekly", window: sevenDay)
                 }
                 if quotaStore.error != nil {
-                    Text("↻ unavailable")
-                        .font(.system(size: 10))
-                        .foregroundStyle(.secondary.opacity(0.5))
-                        .padding(.horizontal, 14)
+                    errorRow(compact: true)
                 }
             }
+        } else if quotaStore.isFetching {
+            HStack(spacing: 6) {
+                ProgressView().scaleEffect(0.6)
+                Text("Loading…")
+                    .font(.system(size: 11))
+                    .foregroundStyle(.secondary)
+            }
+            .padding(.horizontal, 14)
         } else {
-            // Error state, no cached data.
-            Text(errorMessage)
-                .font(.system(size: 11))
-                .foregroundStyle(.secondary)
-                .padding(.horizontal, 14)
+            errorRow(compact: false)
         }
+    }
+
+    @ViewBuilder
+    private func errorRow(compact: Bool) -> some View {
+        HStack(spacing: 4) {
+            Text(errorMessage)
+                .font(.system(size: compact ? 10 : 11))
+                .foregroundStyle(.secondary.opacity(compact ? 0.5 : 1))
+            if canRetry {
+                Button {
+                    Task { await quotaStore.fetch() }
+                } label: {
+                    Image(systemName: quotaStore.isFetching ? "arrow.clockwise" : "arrow.clockwise")
+                        .font(.system(size: compact ? 10 : 11))
+                        .foregroundStyle(.secondary.opacity(compact ? 0.5 : 0.8))
+                }
+                .buttonStyle(.plain)
+                .disabled(quotaStore.isFetching)
+            }
+        }
+        .padding(.horizontal, 14)
+    }
+
+    private var canRetry: Bool {
+        quotaStore.error != .rateLimited && !quotaStore.isFetching
     }
 
     private var errorMessage: String {
         switch quotaStore.error {
-        case .notSignedIn: return "Sign in to Claude Code to see quota"
-        case .networkError, .rateLimited: return "Quota unavailable"
-        case nil: return ""
+        case .notSignedIn:  return "Sign in to Claude Code to see quota"
+        case .networkError: return "Network error"
+        case .rateLimited:  return "Rate limited — retry in 5 min"
+        case nil:           return ""
         }
     }
 }

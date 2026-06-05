@@ -1,6 +1,28 @@
 import SwiftUI
 
 private let changelog: [(version: String, date: String, items: [String])] = [
+    ("0.2.0", "Jun 2025", [
+        "Auto-refresh quota on wake from sleep",
+        "Auto-retry quota fetch after keychain prompt approval",
+        "Retry button and spinner in quota section",
+        "Distinct error messages: network error, not signed in, rate limited"
+    ]),
+    ("0.1.10", "Jun 2025", [
+        "Quota fetched on-demand only — no background polling",
+        "5-minute stale threshold before re-fetch",
+        "Security hardening for keychain and network calls"
+    ]),
+    ("0.1.8", "Jun 2025", [
+        "Handle 401 from usage API with automatic token refresh",
+        "Prevent concurrent quota fetches",
+        "5-minute backoff after rate limit (429)"
+    ]),
+    ("0.1.7", "Jun 2025", [
+        "Quota tracking: 5-hour and weekly usage bars",
+        "Uses Claude Code OAuth credentials from Keychain",
+        "Color-coded progress bars (green / yellow / red)",
+        "Reset countdown timers per window"
+    ]),
     ("0.1.6", "Jun 2025", [
         "LiteLLM pricing integration with 24h cache and automatic fallback",
         "Cost calculation modes: Auto, Calculate, Display only",
