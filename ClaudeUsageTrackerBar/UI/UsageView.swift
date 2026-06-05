@@ -5,6 +5,7 @@ struct UsageView: View {
     @ObservedObject var quotaStore: QuotaStore
     @ObservedObject var settings: AppSettings
     @State private var showSettings = false
+    @Environment(\.openSettings) private var openSettings
 
     var body: some View {
         Group {
@@ -29,6 +30,10 @@ struct UsageView: View {
             UsageSectionView(title: "All Time", summary: store.allTime, debugMode: settings.debugMode, animateUpdates: settings.animateUpdates)
             Divider().opacity(0.25)
             menuRow("Settings") { showSettings = true }
+            menuRow("Welcome") {
+                NSApp.activate(ignoringOtherApps: true)
+                openSettings()
+            }
             menuRow("Quit", isDestructive: true) { NSApp.terminate(nil) }
         }
     }

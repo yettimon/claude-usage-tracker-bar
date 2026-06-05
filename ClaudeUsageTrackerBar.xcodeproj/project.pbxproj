@@ -3,10 +3,11 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 77;
+	objectVersion = 55;
 	objects = {
 
 /* Begin PBXBuildFile section */
+		04ACE397CCCE9AA4EC73DE4D /* OnboardingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE348646F2C4EC72CE595DAD /* OnboardingView.swift */; };
 		0DDFE3C040EA9FD4A6F46D20 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 067F913BF5E4811D40B7102A /* Assets.xcassets */; };
 		0F6349BCD14BA58B946D6590 /* UsageSummary.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9CF8C293FCCAD0CE2A0A2DC9 /* UsageSummary.swift */; };
 		1BCC3991563644CF1433030B /* Color+Hex.swift in Sources */ = {isa = PBXBuildFile; fileRef = B2E599F1E942ABE1CC3338CD /* Color+Hex.swift */; };
@@ -70,6 +71,7 @@
 		A22908B614E2A0E6DB64719F /* UsageStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UsageStore.swift; sourceTree = "<group>"; };
 		A7AD83F90E15650D8692126F /* UsageAggregator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UsageAggregator.swift; sourceTree = "<group>"; };
 		A7BC3E22213C6FB7BD15BCA8 /* QuotaStoreTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuotaStoreTests.swift; sourceTree = "<group>"; };
+		AE348646F2C4EC72CE595DAD /* OnboardingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingView.swift; sourceTree = "<group>"; };
 		AE945020C5B363BF87C715D8 /* SquareColorWell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SquareColorWell.swift; sourceTree = "<group>"; };
 		AEC45C19D550F03F2E2E40AF /* FileWatcher.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FileWatcher.swift; sourceTree = "<group>"; };
 		B1EC4EC4BA75FA697D339087 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
@@ -114,6 +116,7 @@
 		737ECEFAC649E97AA8B98B24 /* UI */ = {
 			isa = PBXGroup;
 			children = (
+				AE348646F2C4EC72CE595DAD /* OnboardingView.swift */,
 				B1EC4EC4BA75FA697D339087 /* SettingsView.swift */,
 				AE945020C5B363BF87C715D8 /* SquareColorWell.swift */,
 				19C9E4AB4B542B52B6A02555 /* UsageView.swift */,
@@ -294,7 +297,6 @@
 			);
 			mainGroup = E219F90B047A1B7D7172753C;
 			minimizedProjectReferenceProxies = 1;
-			preferredProjectObjectVersion = 77;
 			productRefGroup = B550F06CA01C1B72CD957AE5 /* Products */;
 			projectDirPath = "";
 			projectRoot = "";
@@ -339,6 +341,7 @@
 				8305C51BFE8E888B1DD80373 /* JournalParser.swift in Sources */,
 				26D4BE112837BB33D4984CE8 /* LiteLLMPricing.swift in Sources */,
 				1EDA4F7143FACD442E09F464 /* ModelPricing.swift in Sources */,
+				04ACE397CCCE9AA4EC73DE4D /* OnboardingView.swift in Sources */,
 				D06524A7A2699B9FA452EC8D /* QuotaStatus.swift in Sources */,
 				27292CD02492FE225909423C /* QuotaStore.swift in Sources */,
 				D5E0433C1CD7E091EAB4D06D /* SettingsView.swift in Sources */,
@@ -421,7 +424,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				MACOSX_DEPLOYMENT_TARGET = 13.0;
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -483,7 +486,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				MACOSX_DEPLOYMENT_TARGET = 13.0;
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = YES;
@@ -509,7 +512,7 @@
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
-				MACOSX_DEPLOYMENT_TARGET = 13.0;
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
 				PRODUCT_BUNDLE_IDENTIFIER = "com.yettimon.claude-usage-tracker-bar";
 				SDKROOT = macosx;
 				SWIFT_VERSION = 5.9;
@@ -528,7 +531,7 @@
 					"@executable_path/../Frameworks",
 					"@loader_path/../Frameworks",
 				);
-				MACOSX_DEPLOYMENT_TARGET = 13.0;
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
 				PRODUCT_BUNDLE_IDENTIFIER = "com.yettimon.claude-usage-tracker-bar-tests";
 				SDKROOT = macosx;
 				SWIFT_VERSION = 5.9;
@@ -548,7 +551,7 @@
 					"@executable_path/../Frameworks",
 					"@loader_path/../Frameworks",
 				);
-				MACOSX_DEPLOYMENT_TARGET = 13.0;
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
 				PRODUCT_BUNDLE_IDENTIFIER = "com.yettimon.claude-usage-tracker-bar-tests";
 				SDKROOT = macosx;
 				SWIFT_VERSION = 5.9;
@@ -570,7 +573,7 @@
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
-				MACOSX_DEPLOYMENT_TARGET = 13.0;
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
 				PRODUCT_BUNDLE_IDENTIFIER = "com.yettimon.claude-usage-tracker-bar";
 				SDKROOT = macosx;
 				SWIFT_VERSION = 5.9;

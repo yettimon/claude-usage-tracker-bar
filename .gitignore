@@ -9,6 +9,6 @@ build/
 *.dSYM.zip
 *.dSYM
 
-# Superpowers internal docs
-docs/superpowers/
+# Superpowers internal — keep specs, ignore brainstorm artifacts
+docs/superpowers/brainstorm/
 .superpowers/
