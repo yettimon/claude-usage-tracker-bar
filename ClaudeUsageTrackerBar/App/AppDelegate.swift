@@ -16,6 +16,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         setupStatusItem()
         setupPopover()
         setupMenuBarObservers()
+        setupWakeObserver()
     }
 
     private func setupStatusItem() {
@@ -40,6 +41,21 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             rootView: UsageView(store: store, quotaStore: quotaStore, settings: settings)
         )
         self.popover = popover
+    }
+
+    private func setupWakeObserver() {
+        NSWorkspace.shared.notificationCenter.addObserver(
+            forName: NSWorkspace.didWakeNotification,
+            object: nil,
+            queue: .main
+        ) { [weak self] _ in
+            Task { @MainActor [weak self] in
+                guard let self, self.settings.showQuota else { return }
+                // Wait for network and keychain to settle after wake.
+                try? await Task.sleep(for: .seconds(3))
+                await self.quotaStore.fetch()
+            }
+        }
     }
 
     private func setupMenuBarObservers() {
