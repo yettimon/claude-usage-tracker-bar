@@ -11,5 +11,4 @@ build/
 
 # Superpowers internal — keep specs, ignore brainstorm artifacts
 docs/superpowers/brainstorm/
-docs/superpowers/plans/
 .superpowers/
