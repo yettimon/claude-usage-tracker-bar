@@ -2,7 +2,7 @@ name: ClaudeUsageTrackerBar
 options:
   bundleIdPrefix: com.yettimon
   deploymentTarget:
-    macOS: "13.0"
+    macOS: "14.0"
   createIntermediateGroups: true
   xcodeVersion: "15.0"
 
@@ -10,7 +10,7 @@ targets:
   ClaudeUsageTrackerBar:
     type: application
     platform: macOS
-    deploymentTarget: "13.0"
+    deploymentTarget: "14.0"
     sources:
       - path: ClaudeUsageTrackerBar
     info:
@@ -26,7 +26,7 @@ targets:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.yettimon.claude-usage-tracker-bar
         SWIFT_VERSION: "5.9"
-        MACOSX_DEPLOYMENT_TARGET: "13.0"
+        MACOSX_DEPLOYMENT_TARGET: "14.0"
         CODE_SIGN_IDENTITY: ""
         CODE_SIGNING_REQUIRED: "NO"
         CODE_SIGNING_ALLOWED: "NO"
@@ -38,7 +38,7 @@ targets:
   ClaudeUsageTrackerBarTests:
     type: bundle.unit-test
     platform: macOS
-    deploymentTarget: "13.0"
+    deploymentTarget: "14.0"
     sources:
       - path: ClaudeUsageTrackerBarTests
         includes:
@@ -50,6 +50,6 @@ targets:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.yettimon.claude-usage-tracker-bar-tests
         SWIFT_VERSION: "5.9"
-        MACOSX_DEPLOYMENT_TARGET: "13.0"
+        MACOSX_DEPLOYMENT_TARGET: "14.0"
         CODE_SIGN_IDENTITY: ""
         CODE_SIGNING_REQUIRED: "NO"

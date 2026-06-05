@@ -3,7 +3,8 @@ import SwiftUI
 import Combine
 
 @MainActor
-final class AppDelegate: NSObject, NSApplicationDelegate {
+final class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject {
+    @Published var shouldShowOnboarding = false
     private var statusItem: NSStatusItem?
     private var popover: NSPopover?
     private let settings = AppSettings()
@@ -20,16 +21,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         showOnboardingIfNeeded()
     }
 
-    func showWelcome() {
-        NSApp.activate(ignoringOtherApps: true)
-        NSApp.sendAction(Selector(("showSettingsWindow:")), to: nil, from: nil)
-    }
-
     private func showOnboardingIfNeeded() {
         guard !UserDefaults.standard.bool(forKey: "hasSeenOnboarding") else { return }
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
-            NSApp.activate(ignoringOtherApps: true)
-            NSApp.sendAction(Selector(("showSettingsWindow:")), to: nil, from: nil)
+            self.shouldShowOnboarding = true
         }
     }
 
