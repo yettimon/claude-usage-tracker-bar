@@ -47,6 +47,16 @@ struct SettingsView: View {
 
     @State private var showChangelog = false
 
+    private func openOnboarding() {
+        NSApp.activate(ignoringOtherApps: true)
+        // Re-show if the window exists but is hidden; otherwise create it.
+        if let win = NSApp.windows.first(where: { $0.title.hasSuffix("Settings") }) {
+            win.makeKeyAndOrderFront(nil)
+        } else {
+            NSApp.sendAction(Selector(("showSettingsWindow:")), to: nil, from: nil)
+        }
+    }
+
     private var appVersion: String {
         Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "—"
     }
@@ -265,6 +275,10 @@ struct SettingsView: View {
                         .foregroundStyle(.secondary)
                 }
                 Spacer()
+                Button("Welcome") { openOnboarding() }
+                    .font(.system(size: 12))
+                    .buttonStyle(.plain)
+                    .foregroundStyle(.blue)
                 Button("What's New") { showChangelog = true }
                     .font(.system(size: 12))
                     .buttonStyle(.plain)

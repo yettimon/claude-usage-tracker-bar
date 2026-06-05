@@ -29,10 +29,6 @@ struct UsageView: View {
             UsageSectionView(title: "All Time", summary: store.allTime, debugMode: settings.debugMode, animateUpdates: settings.animateUpdates)
             Divider().opacity(0.25)
             menuRow("Settings") { showSettings = true }
-            menuRow("Welcome") {
-                NSApp.activate(ignoringOtherApps: true)
-                NSApp.sendAction(Selector(("showSettingsWindow:")), to: nil, from: nil)
-            }
             menuRow("Quit", isDestructive: true) { NSApp.terminate(nil) }
         }
     }
