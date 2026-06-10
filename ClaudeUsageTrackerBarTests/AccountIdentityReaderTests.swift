@@ -50,6 +50,12 @@ final class AccountIdentityReaderTests: XCTestCase {
         XCTAssertEqual(identity, AccountIdentity(email: "user@example.com", displayOrg: "Personal"))
     }
 
+    func test_parse_emptyOrg_nonGmail_displaysPersonal() {
+        let json = data(#"{ "oauthAccount": { "emailAddress": "user@example.com", "organizationName": "" } }"#)
+        let identity = AccountIdentityReader.parse(json)
+        XCTAssertEqual(identity, AccountIdentity(email: "user@example.com", displayOrg: "Personal"))
+    }
+
     func test_parse_malformed_returnsNil() {
         XCTAssertNil(AccountIdentityReader.parse(data("not json")))
     }

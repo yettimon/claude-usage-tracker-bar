@@ -18,7 +18,7 @@ struct AccountIdentityReader: AccountIdentityProviding {
         return Self.parse(data)
     }
 
-    // Pure and testable: decodes only oauthAccount.{emailAddress, organizationName}.
+    /// Pure and testable: decodes only oauthAccount.{emailAddress, organizationName}.
     static func parse(_ data: Data) -> AccountIdentity? {
         struct Root: Decodable {
             let oauthAccount: OAuthAccount?
