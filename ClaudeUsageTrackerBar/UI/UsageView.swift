@@ -3,6 +3,7 @@ import SwiftUI
 struct UsageView: View {
     @ObservedObject var store: UsageStore
     @ObservedObject var quotaStore: QuotaStore
+    @ObservedObject var accountStore: AccountStore
     @ObservedObject var settings: AppSettings
     @State private var showSettings = false
 
@@ -19,6 +20,7 @@ struct UsageView: View {
 
     private var mainView: some View {
         let content = VStack(alignment: .leading, spacing: 0) {
+            AccountRowView(accountStore: accountStore)
             if settings.showQuota {
                 QuotaSectionView(quotaStore: quotaStore)
             }
@@ -159,6 +161,30 @@ struct StatRowView: View {
         }
         .padding(.horizontal, 14)
         .padding(.vertical, 2)
+    }
+}
+
+// MARK: - Account identity row
+
+struct AccountRowView: View {
+    @ObservedObject var accountStore: AccountStore
+
+    var body: some View {
+        if let identity = accountStore.identity {
+            VStack(alignment: .leading, spacing: 0) {
+                Text("\(identity.email) · \(identity.displayOrg)")
+                    .font(.system(size: 11))
+                    .foregroundStyle(.secondary)
+                    // Full email, no truncation — wrap to a second line if needed.
+                    .fixedSize(horizontal: false, vertical: true)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(.horizontal, 14)
+                    .padding(.top, 10)
+                    .padding(.bottom, 8)
+
+                Divider().opacity(0.25)
+            }
+        }
     }
 }
 

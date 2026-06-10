@@ -10,6 +10,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private let settings = AppSettings()
     private lazy var store = UsageStore(settings: settings)
     private lazy var quotaStore = QuotaStore()
+    private lazy var accountStore = AccountStore()
     private var cancellables = Set<AnyCancellable>()
 
     func applicationDidFinishLaunching(_ notification: Notification) {
@@ -71,7 +72,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         let popover = NSPopover()
         popover.behavior = .transient
         popover.contentViewController = NSHostingController(
-            rootView: UsageView(store: store, quotaStore: quotaStore, settings: settings)
+            rootView: UsageView(store: store, quotaStore: quotaStore, accountStore: accountStore, settings: settings)
         )
         self.popover = popover
     }
@@ -154,6 +155,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             popover.performClose(nil)
         } else {
             store.refresh()
+            accountStore.refresh()
             if settings.showQuota { quotaStore.refreshIfStale() }
             popover?.show(relativeTo: button.bounds, of: button, preferredEdge: .minY)
             NSApp.activate(ignoringOtherApps: true)
