@@ -172,15 +172,27 @@ struct AccountRowView: View {
     var body: some View {
         if let identity = accountStore.identity {
             VStack(alignment: .leading, spacing: 0) {
-                Text("\(identity.email) · \(identity.displayOrg)")
-                    .font(.system(size: 11))
-                    .foregroundStyle(.secondary)
-                    // Full email, no truncation — wrap to a second line if needed.
-                    .fixedSize(horizontal: false, vertical: true)
-                    .frame(maxWidth: .infinity, alignment: .leading)
+                Text("ACCOUNT")
+                    .font(.system(size: 10))
+                    .foregroundStyle(.secondary.opacity(0.7))
                     .padding(.horizontal, 14)
                     .padding(.top, 10)
-                    .padding(.bottom, 8)
+                    .padding(.bottom, 6)
+
+                VStack(alignment: .leading, spacing: 2) {
+                    // Full email, no truncation — wrap to a second line if needed.
+                    Text(identity.email)
+                        .font(.system(size: 11))
+                        .foregroundStyle(.secondary)
+                        .fixedSize(horizontal: false, vertical: true)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                    Text(identity.displayOrg)
+                        .font(.system(size: 11))
+                        .foregroundStyle(.secondary.opacity(0.7))
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                }
+                .padding(.horizontal, 14)
+                .padding(.bottom, 8)
 
                 Divider().opacity(0.25)
             }
