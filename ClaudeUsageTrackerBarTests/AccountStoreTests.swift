@@ -15,7 +15,7 @@ final class AccountStoreTests: XCTestCase {
 
     func test_init_readsIdentity() {
         let mock = MockAccountIdentityProvider()
-        mock.identity = AccountIdentity(email: "user@voxwise.com", displayOrg: "Voxwise")
+        mock.identity = AccountIdentity(email: "alice@example.com", displayOrg: "Example Org")
 
         let store = AccountStore(provider: mock)
 
@@ -42,7 +42,7 @@ final class AccountStoreTests: XCTestCase {
 
     func test_refresh_nilIdentity_clears() {
         let mock = MockAccountIdentityProvider()
-        mock.identity = AccountIdentity(email: "user@voxwise.com", displayOrg: "Voxwise")
+        mock.identity = AccountIdentity(email: "alice@example.com", displayOrg: "Example Org")
         let store = AccountStore(provider: mock)
         XCTAssertNotNil(store.identity)
 
