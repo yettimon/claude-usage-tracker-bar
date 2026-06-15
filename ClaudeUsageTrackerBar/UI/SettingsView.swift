@@ -1,39 +1,57 @@
 import SwiftUI
 
 private let changelog: [(version: String, date: String, items: [String])] = [
-    ("0.2.0", "Jun 2025", [
+    ("0.1.18", "Jun 2026", [
+        "Correct cost for long-context requests: >200K-token prompts now apply Anthropic's premium rates"
+    ]),
+    ("0.1.17", "Jun 2026", [
+        "Logged-in account (email and organization) shown above the quota section"
+    ]),
+    ("0.1.16", "Jun 2026", [
+        "Full-height popup by default",
+        "Scrollable popup toggle in Settings"
+    ]),
+    ("0.1.15", "Jun 2026", [
+        "Fix popup content overflow clipping"
+    ]),
+    ("0.1.14", "Jun 2026", [
+        "Onboarding opens as its own window — removes console warnings"
+    ]),
+    ("0.1.13", "Jun 2026", [
+        "Welcome moved to the Settings tab with reliable re-open"
+    ]),
+    ("0.1.12", "Jun 2026", [
+        "4-slide onboarding wizard on first launch"
+    ]),
+    ("0.1.11", "Jun 2026", [
         "Auto-refresh quota on wake from sleep",
         "Auto-retry quota fetch after keychain prompt approval",
         "Retry button and spinner in quota section",
         "Distinct error messages: network error, not signed in, rate limited"
     ]),
-    ("0.1.10", "Jun 2025", [
-        "Quota fetched on-demand only — no background polling",
-        "5-minute stale threshold before re-fetch",
-        "Security hardening for keychain and network calls"
-    ]),
-    ("0.1.8", "Jun 2025", [
+    ("0.1.10", "Jun 2026", [
         "Handle 401 from usage API with automatic token refresh",
         "Prevent concurrent quota fetches",
         "5-minute backoff after rate limit (429)"
     ]),
-    ("0.1.7", "Jun 2025", [
+    ("0.1.7", "Jun 2026", [
         "Quota tracking: 5-hour and weekly usage bars",
-        "Uses Claude Code OAuth credentials from Keychain",
         "Color-coded progress bars (green / yellow / red)",
-        "Reset countdown timers per window"
+        "Reset countdown timers per window",
+        "Uses Claude Code OAuth credentials from Keychain",
+        "Quota fetched on-demand only — 5-minute stale threshold",
+        "Quota toggle in Settings"
     ]),
-    ("0.1.6", "Jun 2025", [
+    ("0.1.6", "Jun 2026", [
         "LiteLLM pricing integration with 24h cache and automatic fallback",
         "Cost calculation modes: Auto, Calculate, Display only",
         "Adaptive menu bar text color (light/dark mode), bold weight",
         "Custom color picker for menu bar text",
-        "What's New popover in Settings",
-        "Smaller toggles and square color swatch in Settings",
-        "Version synced to git tags via CI"
+        "What's New popover in Settings"
     ]),
-    ("0.1.5", "Jun 2025", [
+    ("0.1.5", "Jun 2026", [
         "Show cost or token usage next to menu bar icon",
+        "Total tokens row",
         "Animate updates when popup opens",
         "Debug mode with exact token counts",
         "Launch at login support"
