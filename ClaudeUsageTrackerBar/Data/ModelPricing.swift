@@ -9,12 +9,28 @@ struct ModelPrice {
     let cacheWritePerMToken: Double
     let cacheReadPerMToken: Double
 
+    // Anthropic charges a long-context premium when a single request's prompt
+    // (input + cache-write + cache-read; output excluded) exceeds 200K tokens:
+    // input x2, output x1.5, cache-write x2, cache-read x2.
+    static let longContextThreshold = 200_000
+    static let inputPremiumMultiplier = 2.0
+    static let outputPremiumMultiplier = 1.5
+    static let cachePremiumMultiplier = 2.0
+
     func cost(inputTokens: Int, outputTokens: Int, cacheWriteTokens: Int, cacheReadTokens: Int) -> Double {
         let m = 1_000_000.0
-        return (Double(inputTokens) / m) * inputPerMToken
-             + (Double(outputTokens) / m) * outputPerMToken
-             + (Double(cacheWriteTokens) / m) * cacheWritePerMToken
-             + (Double(cacheReadTokens) / m) * cacheReadPerMToken
+        let contextTokens = inputTokens + cacheWriteTokens + cacheReadTokens
+        let longContext = contextTokens > Self.longContextThreshold
+
+        let inputRate = inputPerMToken * (longContext ? Self.inputPremiumMultiplier : 1.0)
+        let outputRate = outputPerMToken * (longContext ? Self.outputPremiumMultiplier : 1.0)
+        let cacheWriteRate = cacheWritePerMToken * (longContext ? Self.cachePremiumMultiplier : 1.0)
+        let cacheReadRate = cacheReadPerMToken * (longContext ? Self.cachePremiumMultiplier : 1.0)
+
+        return (Double(inputTokens) / m) * inputRate
+             + (Double(outputTokens) / m) * outputRate
+             + (Double(cacheWriteTokens) / m) * cacheWriteRate
+             + (Double(cacheReadTokens) / m) * cacheReadRate
     }
 }
 

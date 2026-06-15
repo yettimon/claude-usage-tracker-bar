@@ -45,10 +45,10 @@ final class UsageAggregatorTests: XCTestCase {
     }
 
     func test_cost_calculatedCorrectly() {
-        // 1M input tokens at $3.00/M = $3.00
-        let entries = [makeEntry(hoursAgo: 1, inputTokens: 1_000_000, outputTokens: 0)]
+        // 100K input tokens (below 200K long-context threshold) at $3.00/M = $0.30
+        let entries = [makeEntry(hoursAgo: 1, inputTokens: 100_000, outputTokens: 0)]
         let result = UsageAggregator.aggregate(entries: entries, referenceDate: referenceDate)
-        XCTAssertEqual(result.today.totalCost, 3.0, accuracy: 0.0001)
+        XCTAssertEqual(result.today.totalCost, 0.30, accuracy: 0.0001)
     }
 
     func test_modelsUsed_sortedByTokenCount() {
@@ -74,15 +74,15 @@ final class UsageAggregatorTests: XCTestCase {
     }
 
     func test_autoMode_fallsBackToTokens_whenNoCostUSD() {
-        let entries = [makeEntry(hoursAgo: 1, inputTokens: 1_000_000, outputTokens: 0)]
+        let entries = [makeEntry(hoursAgo: 1, inputTokens: 100_000, outputTokens: 0)]
         let result = UsageAggregator.aggregate(entries: entries, referenceDate: referenceDate, costMode: .auto)
-        XCTAssertEqual(result.today.totalCost, 3.0, accuracy: 0.0001)
+        XCTAssertEqual(result.today.totalCost, 0.30, accuracy: 0.0001)
     }
 
     func test_calculateMode_ignoresCostUSD() {
-        let entries = [makeEntry(hoursAgo: 1, inputTokens: 1_000_000, outputTokens: 0, costUSD: 9.99)]
+        let entries = [makeEntry(hoursAgo: 1, inputTokens: 100_000, outputTokens: 0, costUSD: 9.99)]
         let result = UsageAggregator.aggregate(entries: entries, referenceDate: referenceDate, costMode: .calculate)
-        XCTAssertEqual(result.today.totalCost, 3.0, accuracy: 0.0001)
+        XCTAssertEqual(result.today.totalCost, 0.30, accuracy: 0.0001)
     }
 
     func test_displayMode_usesCostUSD() {
