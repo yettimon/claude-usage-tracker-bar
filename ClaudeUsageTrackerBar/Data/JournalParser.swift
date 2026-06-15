@@ -69,12 +69,20 @@ enum JournalParser {
         // Skip synthetic/internal entries — not real API calls
         guard !model.hasPrefix("<") else { return nil }
 
+        let cacheWriteTokens = usage["cache_creation_input_tokens"] as? Int ?? 0
+        // Prefer the per-TTL breakdown; if absent (older entries) treat all writes as 5-minute.
+        let cacheBreakdown = usage["cache_creation"] as? [String: Any]
+        let cacheWrite5m = cacheBreakdown?["ephemeral_5m_input_tokens"] as? Int ?? cacheWriteTokens
+        let cacheWrite1h = cacheBreakdown?["ephemeral_1h_input_tokens"] as? Int ?? 0
+
         let entry = JournalEntry(
             timestamp: timestamp,
             model: model,
             inputTokens: usage["input_tokens"] as? Int ?? 0,
             outputTokens: usage["output_tokens"] as? Int ?? 0,
-            cacheWriteTokens: usage["cache_creation_input_tokens"] as? Int ?? 0,
+            cacheWriteTokens: cacheWriteTokens,
+            cacheWrite5mTokens: cacheWrite5m,
+            cacheWrite1hTokens: cacheWrite1h,
             cacheReadTokens: usage["cache_read_input_tokens"] as? Int ?? 0,
             costUSD: obj["costUSD"] as? Double
         )
