@@ -2,7 +2,8 @@ import SwiftUI
 
 private let changelog: [(version: String, date: String, items: [String])] = [
     ("0.1.18", "Jun 2026", [
-        "Correct cost for long-context requests: >200K-token prompts now apply Anthropic's premium rates"
+        "Correct cost for long-context requests: >200K-token prompts now apply Anthropic's premium rates",
+        "Price 1-hour cache writes at the correct rate (separate from 5-minute writes)"
     ]),
     ("0.1.17", "Jun 2026", [
         "Logged-in account (email and organization) shown above the quota section"

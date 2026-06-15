@@ -51,7 +51,8 @@ enum UsageAggregator {
                 for: entry.model,
                 inputTokens: entry.inputTokens,
                 outputTokens: entry.outputTokens,
-                cacheWriteTokens: entry.cacheWriteTokens,
+                cacheWrite5mTokens: entry.cacheWrite5mTokens,
+                cacheWrite1hTokens: entry.cacheWrite1hTokens,
                 cacheReadTokens: entry.cacheReadTokens
             )
         case .auto:
@@ -59,7 +60,8 @@ enum UsageAggregator {
                 for: entry.model,
                 inputTokens: entry.inputTokens,
                 outputTokens: entry.outputTokens,
-                cacheWriteTokens: entry.cacheWriteTokens,
+                cacheWrite5mTokens: entry.cacheWrite5mTokens,
+                cacheWrite1hTokens: entry.cacheWrite1hTokens,
                 cacheReadTokens: entry.cacheReadTokens
             )
         }

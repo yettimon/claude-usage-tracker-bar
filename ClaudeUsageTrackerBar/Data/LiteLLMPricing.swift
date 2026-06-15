@@ -38,7 +38,8 @@ final class LiteLLMPricing: ObservableObject {
         for model: String,
         inputTokens: Int,
         outputTokens: Int,
-        cacheWriteTokens: Int,
+        cacheWrite5mTokens: Int,
+        cacheWrite1hTokens: Int,
         cacheReadTokens: Int
     ) -> Double {
         let price: ModelPrice? = accessQueue.sync {
@@ -48,7 +49,8 @@ final class LiteLLMPricing: ObservableObject {
             return price.cost(
                 inputTokens: inputTokens,
                 outputTokens: outputTokens,
-                cacheWriteTokens: cacheWriteTokens,
+                cacheWrite5mTokens: cacheWrite5mTokens,
+                cacheWrite1hTokens: cacheWrite1hTokens,
                 cacheReadTokens: cacheReadTokens
             )
         }
@@ -56,7 +58,8 @@ final class LiteLLMPricing: ObservableObject {
             for: model,
             inputTokens: inputTokens,
             outputTokens: outputTokens,
-            cacheWriteTokens: cacheWriteTokens,
+            cacheWrite5mTokens: cacheWrite5mTokens,
+            cacheWrite1hTokens: cacheWrite1hTokens,
             cacheReadTokens: cacheReadTokens
         )
     }
@@ -121,13 +124,18 @@ final class LiteLLMPricing: ObservableObject {
                   let inputPerToken = entry["input_cost_per_token"] as? Double,
                   let outputPerToken = entry["output_cost_per_token"] as? Double
             else { continue }
-            let cacheWritePerToken = entry["cache_creation_input_token_cost"] as? Double ?? 0
+            let cacheWrite5mPerToken = entry["cache_creation_input_token_cost"] as? Double ?? 0
+            // 1-hour cache writes cost more (2x base input). Use the explicit field when
+            // present, else fall back to 2x the input rate (matches Anthropic's published rates).
+            let cacheWrite1hPerToken = entry["cache_creation_input_token_cost_above_1hr"] as? Double
+                ?? (inputPerToken * 2.0)
             let cacheReadPerToken = entry["cache_read_input_token_cost"] as? Double ?? 0
             let m = 1_000_000.0
             result[key] = ModelPrice(
                 inputPerMToken: inputPerToken * m,
                 outputPerMToken: outputPerToken * m,
-                cacheWritePerMToken: cacheWritePerToken * m,
+                cacheWrite5mPerMToken: cacheWrite5mPerToken * m,
+                cacheWrite1hPerMToken: cacheWrite1hPerToken * m,
                 cacheReadPerMToken: cacheReadPerToken * m
             )
         }
