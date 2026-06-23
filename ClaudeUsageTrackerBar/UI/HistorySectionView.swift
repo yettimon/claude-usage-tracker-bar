@@ -162,19 +162,15 @@ struct HistorySectionView: View {
         }
     }
 
-    /// Builds week-columns for the last 5 months only.
-    /// Skips weeks before the first recorded day to avoid empty left columns.
+    /// Always builds exactly 22 weeks ending today (≈5 months).
+    /// Empty cells for weeks before first data — ensures content is always wider
+    /// than viewport so scrollTo(trailing) fills 100% width correctly.
     private func buildWeeks() -> [[Date]] {
         var cal = Calendar.current
         cal.firstWeekday = 1  // Sunday
         let today = cal.startOfDay(for: Date())
-        let fiveMonthsAgo = cal.date(byAdding: .month, value: -5, to: today)!
-
-        guard let earliest = store.daily.keys.min() else { return [] }
-        // Start from whichever is more recent: first data point or 5-month cutoff.
-        let displayFrom = earliest > fiveMonthsAgo ? earliest : fiveMonthsAgo
-
-        guard let firstWeek = cal.dateInterval(of: .weekOfYear, for: displayFrom)?.start else { return [] }
+        let startDate = cal.date(byAdding: .day, value: -(22 * 7), to: today)!
+        guard let firstWeek = cal.dateInterval(of: .weekOfYear, for: startDate)?.start else { return [] }
 
         var weeks: [[Date]] = []
         var weekStart = cal.startOfDay(for: firstWeek)
@@ -199,6 +195,7 @@ private struct HeatmapCell: View {
     let cellSize: CGFloat
 
     @State private var showPopover = false
+    @State private var isHovering = false
 
     private static let dateFormatter: DateFormatter = {
         let f = DateFormatter()
@@ -207,14 +204,21 @@ private struct HeatmapCell: View {
     }()
 
     var body: some View {
-        RoundedRectangle(cornerRadius: 2)
-            .fill(cellColor)
-            .frame(width: cellSize, height: cellSize)
-            .help(Self.dateFormatter.string(from: day))
-            .onTapGesture { showPopover.toggle() }
-            .popover(isPresented: $showPopover, arrowEdge: .bottom) {
-                statsPopover
+        ZStack {
+            RoundedRectangle(cornerRadius: 2).fill(cellColor)
+            if isHovering {
+                RoundedRectangle(cornerRadius: 2)
+                    .stroke(Color.white.opacity(0.5), lineWidth: 1)
             }
+        }
+        .frame(width: cellSize, height: cellSize)
+        .contentShape(Rectangle())
+        .help(Self.dateFormatter.string(from: day))
+        .onHover { isHovering = $0 }
+        .onTapGesture { showPopover.toggle() }
+        .popover(isPresented: $showPopover, arrowEdge: .bottom) {
+            statsPopover
+        }
     }
 
     private var statsPopover: some View {
