@@ -16,6 +16,7 @@ A lightweight native macOS menu bar app that shows your [Claude Code](https://cl
 - **Colored menu bar icon** — orange spark + gold coin stack, visible on any menu bar
 - **Quota tracking** — 5-hour and weekly utilization bars fetched from Anthropic's usage endpoint, color-coded green / yellow / red with reset countdowns; auto-retries on wake from sleep
 - **Usage history heatmap** — GitHub-style daily activity grid for the past 5 months; switchable metric (cost, tokens, requests); click any cell for a detailed breakdown
+- **Service status** — live Claude operational status (green / yellow / red) fetched from status.claude.com, with "updated X ago" timestamp
 - **Quick access** — gear and quit buttons always visible in popup header
 - **Launch at login** — enabled by default via SMAppService
 - **Debug mode** — shows exact token counts with thousands separators instead of K/M
@@ -28,9 +29,9 @@ A lightweight native macOS menu bar app that shows your [Claude Code](https://cl
 </p>
 
 <p align="center">
-  <img src="docs/screenshots/Screenshot%202026-06-23%20at%2015.34.11.png" width="260" alt="Usage popup with heatmap"/>
+  <img src="docs/screenshots/Screenshot%202026-06-23%20at%2023.07.21.png" width="260" alt="Usage popup with heatmap"/>
   &nbsp;&nbsp;
-  <img src="docs/screenshots/Screenshot%202026-06-23%20at%2015.34.48.png" width="260" alt="Settings"/>
+  <img src="docs/screenshots/Screenshot%202026-06-23%20at%2023.08.56.png" width="260" alt="Settings"/>
 </p>
 
 ## Install
