@@ -9,5 +9,5 @@ build/
 *.dSYM.zip
 *.dSYM
 
-docs/
+docs/superpowers/
 .superpowers/
