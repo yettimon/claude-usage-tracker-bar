@@ -28,6 +28,8 @@ final class AppSettings: ObservableObject {
     @Published private(set) var showToday: Bool
     @Published private(set) var showLast30Days: Bool
     @Published private(set) var showAllTime: Bool
+    @Published private(set) var showHistory: Bool
+    @Published private(set) var historyMetric: HistoryMetric
 
     init() {
         let stored = UserDefaults.standard.object(forKey: "launchAtLogin") as? Bool
@@ -45,6 +47,9 @@ final class AppSettings: ObservableObject {
         showToday = UserDefaults.standard.object(forKey: "showToday") as? Bool ?? true
         showLast30Days = UserDefaults.standard.object(forKey: "showLast30Days") as? Bool ?? false
         showAllTime = UserDefaults.standard.object(forKey: "showAllTime") as? Bool ?? false
+        showHistory = UserDefaults.standard.object(forKey: "showHistory") as? Bool ?? true
+        let rawHistoryMetric = UserDefaults.standard.string(forKey: "historyMetric") ?? ""
+        historyMetric = HistoryMetric(rawValue: rawHistoryMetric) ?? .cost
         if stored == nil {
             applyLaunchAtLogin(true)
         }
@@ -107,6 +112,16 @@ final class AppSettings: ObservableObject {
     func setShowAllTime(_ enabled: Bool) {
         showAllTime = enabled
         UserDefaults.standard.set(enabled, forKey: "showAllTime")
+    }
+
+    func setShowHistory(_ enabled: Bool) {
+        showHistory = enabled
+        UserDefaults.standard.set(enabled, forKey: "showHistory")
+    }
+
+    func setHistoryMetric(_ metric: HistoryMetric) {
+        historyMetric = metric
+        UserDefaults.standard.set(metric.rawValue, forKey: "historyMetric")
     }
 
     private func applyLaunchAtLogin(_ enabled: Bool) {
