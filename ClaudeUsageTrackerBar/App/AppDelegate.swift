@@ -10,7 +10,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private let settings = AppSettings()
     private lazy var store = UsageStore(settings: settings)
     private lazy var quotaStore = QuotaStore()
-    private lazy var statusStore = ClaudeStatusStore()
+    private lazy var statusStore = ClaudeStatusStore(fetchOnInit: false)
     private lazy var accountStore = AccountStore()
     private var cancellables = Set<AnyCancellable>()
 

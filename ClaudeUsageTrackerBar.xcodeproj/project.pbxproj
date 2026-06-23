@@ -25,6 +25,7 @@
 		5FC8D01118B38C4388A08344 /* UsageStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = A22908B614E2A0E6DB64719F /* UsageStore.swift */; };
 		600557EF98D5C9577CE9EBA6 /* AnthropicQuotaServiceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 52AECCB5A723A06F1708C9CA /* AnthropicQuotaServiceTests.swift */; };
 		6446B0536EED7BB51E87A402 /* CoreServices.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 2474D14CA6FE96B0DB1D6DC8 /* CoreServices.framework */; };
+		76E08968BEE9C38EBCDE98B3 /* ClaudeStatusRelativeTimeTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 20D00783229539612C0DDF08 /* ClaudeStatusRelativeTimeTests.swift */; };
 		8305C51BFE8E888B1DD80373 /* JournalParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = 72D1B45335C4FE8064E53483 /* JournalParser.swift */; };
 		9774DD397FE98776D0233CBE /* HistorySectionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 88019F891631F74D678230DC /* HistorySectionView.swift */; };
 		A028425B701B3DF968B633E2 /* UsageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 19C9E4AB4B542B52B6A02555 /* UsageView.swift */; };
@@ -71,6 +72,7 @@
 		15816BED7CC485278B671434 /* DailyUsage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DailyUsage.swift; sourceTree = "<group>"; };
 		19C9E4AB4B542B52B6A02555 /* UsageView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UsageView.swift; sourceTree = "<group>"; };
 		1E3ADA1C09E653241A931D53 /* AccountStoreTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AccountStoreTests.swift; sourceTree = "<group>"; };
+		20D00783229539612C0DDF08 /* ClaudeStatusRelativeTimeTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClaudeStatusRelativeTimeTests.swift; sourceTree = "<group>"; };
 		24318013D974E2E947EDF9D7 /* ClaudeServiceStatus.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClaudeServiceStatus.swift; sourceTree = "<group>"; };
 		2474D14CA6FE96B0DB1D6DC8 /* CoreServices.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreServices.framework; path = System/Library/Frameworks/CoreServices.framework; sourceTree = SDKROOT; };
 		2C7B8A447FD11A2FC6A1C060 /* ClaudeUsageTrackerBarTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = ClaudeUsageTrackerBarTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -174,6 +176,7 @@
 				52AECCB5A723A06F1708C9CA /* AnthropicQuotaServiceTests.swift */,
 				D6CB7CDFC1E1DD464F5C99C1 /* AppSettingsTests.swift */,
 				3A789CCAD9B923253B425A4F /* ClaudeStatusModelTests.swift */,
+				20D00783229539612C0DDF08 /* ClaudeStatusRelativeTimeTests.swift */,
 				69A10BA77570DA7FABB2B7FB /* ClaudeStatusServiceTests.swift */,
 				D17FBEA37541DAE3CE2F020C /* ClaudeStatusStoreTests.swift */,
 				30702EA54DFCC72A81C88AC8 /* ClaudeUsageTrackerBarTests.swift */,
@@ -412,6 +415,7 @@
 				600557EF98D5C9577CE9EBA6 /* AnthropicQuotaServiceTests.swift in Sources */,
 				23DFC0568C7D13C7A8A9D84A /* AppSettingsTests.swift in Sources */,
 				B82006E63BDA321D9E3DDEF3 /* ClaudeStatusModelTests.swift in Sources */,
+				76E08968BEE9C38EBCDE98B3 /* ClaudeStatusRelativeTimeTests.swift in Sources */,
 				D74F396135061FF556FE7769 /* ClaudeStatusServiceTests.swift in Sources */,
 				BF103C866429D55E3C451B06 /* ClaudeStatusStoreTests.swift in Sources */,
 				37A6BFA7FA54FF4D1A3E9E0C /* ClaudeUsageTrackerBarTests.swift in Sources */,

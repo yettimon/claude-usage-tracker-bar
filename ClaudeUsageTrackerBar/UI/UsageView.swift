@@ -382,7 +382,7 @@ struct StatusSectionView: View {
                 .padding(.horizontal, 14)
                 .padding(.bottom, 2)
 
-                Text(relativeTime(from: status.updatedAt, to: now))
+                Text(StatusSectionView.relativeTime(from: status.updatedAt, to: now))
                     .font(.system(size: 10))
                     .foregroundStyle(.secondary.opacity(0.7))
                     .padding(.horizontal, 14)
@@ -395,7 +395,7 @@ struct StatusSectionView: View {
         }
     }
 
-    private func relativeTime(from date: Date, to now: Date) -> String {
+    static func relativeTime(from date: Date, to now: Date) -> String {
         let seconds = now.timeIntervalSince(date)
         if seconds < 60 { return "updated just now" }
         let minutes = Int(seconds / 60)
