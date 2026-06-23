@@ -19,7 +19,7 @@ struct UsageView: View {
     }
 
     private var mainView: some View {
-        VStack(alignment: .leading, spacing: 0) {
+        let content = VStack(alignment: .leading, spacing: 0) {
             AccountRowView(
                 accountStore: accountStore,
                 onSettings: { showSettings = true },
@@ -41,7 +41,8 @@ struct UsageView: View {
                 UsageSectionView(title: "All Time", summary: store.allTime, debugMode: settings.debugMode, animateUpdates: settings.animateUpdates)
             }
         }
-        .frame(maxHeight: 700)
+        return ScrollView(.vertical, showsIndicators: false) { content }
+            .frame(maxHeight: 520)
     }
 }
 
