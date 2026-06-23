@@ -28,6 +28,9 @@ struct UsageView: View {
             if settings.showQuota {
                 QuotaSectionView(quotaStore: quotaStore)
             }
+            if settings.showHistory {
+                HistorySectionView(store: store, settings: settings)
+            }
             if settings.showToday {
                 Divider().opacity(0.25)
                 UsageSectionView(title: "Today", summary: store.today, debugMode: settings.debugMode, animateUpdates: settings.animateUpdates)

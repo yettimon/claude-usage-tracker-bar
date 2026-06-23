@@ -237,6 +237,22 @@ struct SettingsView: View {
             Divider().opacity(0.25)
 
             HStack {
+                Text("Show History")
+                    .font(.system(size: 12))
+                Spacer()
+                Toggle("", isOn: Binding(
+                    get: { settings.showHistory },
+                    set: { settings.setShowHistory($0) }
+                ))
+                .labelsHidden()
+                .toggleStyle(.switch)
+            }
+            .padding(.horizontal, 14)
+            .padding(.vertical, 10)
+
+            Divider().opacity(0.25)
+
+            HStack {
                 Text("Show Today")
                     .font(.system(size: 12))
                 Spacer()

@@ -5,6 +5,7 @@ final class UsageStore: ObservableObject {
     @Published var today: UsageSummary = .empty
     @Published var last30Days: UsageSummary = .empty
     @Published var allTime: UsageSummary = .empty
+    @Published var daily: [Date: DailyUsage] = [:]
 
     private let settings: AppSettings
     private var watcher: FileWatcher?
@@ -31,6 +32,7 @@ final class UsageStore: ObservableObject {
                 self?.today = result.today
                 self?.last30Days = result.last30Days
                 self?.allTime = result.allTime
+                self?.daily = result.daily
             }
         }
     }

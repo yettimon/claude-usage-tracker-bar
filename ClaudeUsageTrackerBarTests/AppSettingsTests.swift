@@ -3,7 +3,7 @@ import XCTest
 
 final class AppSettingsTests: XCTestCase {
 
-    private let keys = ["showInMenuBar", "menuBarDisplay", "launchAtLogin", "debugMode", "animateUpdates", "costMode", "showToday", "showLast30Days", "showAllTime"]
+    private let keys = ["showInMenuBar", "menuBarDisplay", "launchAtLogin", "debugMode", "animateUpdates", "costMode", "showToday", "showLast30Days", "showAllTime", "showHistory", "historyMetric"]
 
     override func setUp() {
         super.setUp()
@@ -73,5 +73,25 @@ final class AppSettingsTests: XCTestCase {
         settings.setShowAllTime(false)
         let settings2 = AppSettings()
         XCTAssertFalse(settings2.showAllTime)
+    }
+
+    func test_showHistory_defaultsTrue() {
+        XCTAssertTrue(AppSettings().showHistory)
+    }
+
+    func test_showHistory_persists() {
+        let settings = AppSettings()
+        settings.setShowHistory(false)
+        XCTAssertFalse(AppSettings().showHistory)
+    }
+
+    func test_historyMetric_defaultsCost() {
+        XCTAssertEqual(AppSettings().historyMetric, .cost)
+    }
+
+    func test_historyMetric_persists() {
+        let settings = AppSettings()
+        settings.setHistoryMetric(.tokens)
+        XCTAssertEqual(AppSettings().historyMetric, .tokens)
     }
 }

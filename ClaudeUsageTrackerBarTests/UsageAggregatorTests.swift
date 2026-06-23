@@ -100,4 +100,31 @@ final class UsageAggregatorTests: XCTestCase {
         let result = UsageAggregator.aggregate(entries: entries, referenceDate: referenceDate, costMode: .display)
         XCTAssertEqual(result.today.totalCost, 0, accuracy: 0.0001)
     }
+
+    func test_daily_mergesSameDayAndSeparatesDifferentDays() {
+        // Two entries today (1h, 2h ago), one two days ago (48h).
+        let entries = [
+            makeEntry(hoursAgo: 1, inputTokens: 100, outputTokens: 50, costUSD: 1.0),
+            makeEntry(hoursAgo: 2, inputTokens: 200, outputTokens: 100, costUSD: 2.0),
+            makeEntry(hoursAgo: 48, inputTokens: 10, outputTokens: 5, costUSD: 0.5),
+        ]
+        let result = UsageAggregator.aggregate(entries: entries, referenceDate: referenceDate, costMode: .display)
+        XCTAssertEqual(result.daily.count, 2, "two distinct calendar days")
+
+        let today = Calendar.current.startOfDay(for: referenceDate)
+        let todayBucket = result.daily[today]
+        XCTAssertEqual(todayBucket?.requestCount, 2)
+        XCTAssertEqual(todayBucket?.totalTokens, 450)            // 150 + 300
+        XCTAssertEqual(todayBucket?.cost ?? -1, 3.0, accuracy: 0.0001)  // display mode: 1.0 + 2.0
+    }
+
+    func test_daily_omitsDaysWithoutEntries() {
+        let result = UsageAggregator.aggregate(entries: [makeEntry(hoursAgo: 1)], referenceDate: referenceDate)
+        XCTAssertEqual(result.daily.count, 1)
+    }
+
+    func test_daily_emptyEntries_returnsEmptyDictionary() {
+        let result = UsageAggregator.aggregate(entries: [], referenceDate: referenceDate)
+        XCTAssertTrue(result.daily.isEmpty)
+    }
 }
