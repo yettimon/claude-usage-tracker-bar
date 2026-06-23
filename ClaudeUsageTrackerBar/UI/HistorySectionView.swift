@@ -7,15 +7,10 @@ struct HistorySectionView: View {
     private let cellSize: CGFloat = 13
     private let cellGap: CGFloat = 3
 
-    @State private var hoverInfo: (date: Date, usage: DailyUsage?)?
-
     var body: some View {
         if !store.daily.isEmpty {
             VStack(alignment: .leading, spacing: 0) {
                 header
-                if let info = hoverInfo {
-                    hoverRow(date: info.date, usage: info.usage)
-                }
                 gridArea
                 legend
                 Divider().opacity(0.25)
@@ -23,7 +18,7 @@ struct HistorySectionView: View {
         }
     }
 
-    // MARK: - Header + metric switcher
+    // MARK: - Header
 
     private var header: some View {
         HStack {
@@ -36,50 +31,16 @@ struct HistorySectionView: View {
                     Button(metric.label) { settings.setHistoryMetric(metric) }
                 }
             } label: {
-                HStack(spacing: 2) {
-                    Text(settings.historyMetric.label)
-                    Image(systemName: "chevron.down")
-                        .font(.system(size: 8))
-                }
-                .font(.system(size: 10))
-                .foregroundStyle(.secondary)
+                Text(settings.historyMetric.label)
+                    .font(.system(size: 10))
+                    .foregroundStyle(.secondary)
             }
             .menuStyle(.borderlessButton)
             .fixedSize()
         }
         .padding(.horizontal, 14)
         .padding(.top, 10)
-        .padding(.bottom, 4)
-    }
-
-    // MARK: - Hover stats row
-
-    private func hoverRow(date: Date, usage: DailyUsage?) -> some View {
-        let f = DateFormatter()
-        f.dateFormat = "EEE MMM d"
-        return HStack(spacing: 4) {
-            Text(f.string(from: date))
-                .font(.system(size: 10, weight: .medium))
-                .foregroundStyle(.secondary)
-            Spacer()
-            Text(String(format: "$%.2f", usage?.cost ?? 0.0))
-                .font(.system(size: 10))
-                .foregroundStyle(Color(hex: "34C759"))
-            Text("·")
-                .font(.system(size: 10))
-                .foregroundStyle(.secondary.opacity(0.4))
-            Text(formatTokens(usage?.totalTokens ?? 0))
-                .font(.system(size: 10))
-                .foregroundStyle(.secondary)
-            Text("·")
-                .font(.system(size: 10))
-                .foregroundStyle(.secondary.opacity(0.4))
-            Text("\(usage?.requestCount ?? 0) req")
-                .font(.system(size: 10))
-                .foregroundStyle(.secondary)
-        }
-        .padding(.horizontal, 14)
-        .padding(.bottom, 4)
+        .padding(.bottom, 6)
     }
 
     // MARK: - Grid
@@ -90,9 +51,8 @@ struct HistorySectionView: View {
         let dayLabelTexts = ["", "M", "", "W", "", "F", ""]
 
         return HStack(alignment: .top, spacing: 4) {
-            // Fixed day-of-week labels (left).
             VStack(spacing: cellGap) {
-                Color.clear.frame(height: 11)  // align under month-label row
+                Color.clear.frame(height: 11)
                 ForEach(0..<7, id: \.self) { i in
                     Text(dayLabelTexts[i])
                         .font(.system(size: 9))
@@ -101,7 +61,6 @@ struct HistorySectionView: View {
                 }
             }
 
-            // Scrolling month labels + week columns.
             ScrollViewReader { proxy in
                 ScrollView(.horizontal, showsIndicators: false) {
                     VStack(alignment: .leading, spacing: cellGap) {
@@ -110,7 +69,7 @@ struct HistorySectionView: View {
                             ForEach(Array(weeks.enumerated()), id: \.offset) { index, week in
                                 VStack(spacing: cellGap) {
                                     ForEach(week, id: \.self) { day in
-                                        cell(for: day, today: today)
+                                        cellView(for: day, today: today)
                                     }
                                 }
                                 .id(index)
@@ -130,18 +89,13 @@ struct HistorySectionView: View {
     }
 
     @ViewBuilder
-    private func cell(for day: Date, today: Date) -> some View {
+    private func cellView(for day: Date, today: Date) -> some View {
         if day > today {
             Color.clear.frame(width: cellSize, height: cellSize)
         } else {
             let usage = store.daily[day]
             let level = usage.map { historyLevel($0, metric: settings.historyMetric) } ?? 0
-            RoundedRectangle(cornerRadius: 2)
-                .fill(color(for: level))
-                .frame(width: cellSize, height: cellSize)
-                .onHover { isHovering in
-                    hoverInfo = isHovering ? (day, usage) : nil
-                }
+            HeatmapCell(day: day, usage: usage, level: level, cellSize: cellSize)
         }
     }
 
@@ -186,7 +140,7 @@ struct HistorySectionView: View {
             Text("Less").font(.system(size: 9)).foregroundStyle(.secondary.opacity(0.7))
             ForEach(0..<5, id: \.self) { level in
                 RoundedRectangle(cornerRadius: 2)
-                    .fill(color(for: level))
+                    .fill(cellColor(for: level))
                     .frame(width: 10, height: 10)
             }
             Text("More").font(.system(size: 9)).foregroundStyle(.secondary.opacity(0.7))
@@ -198,7 +152,105 @@ struct HistorySectionView: View {
 
     // MARK: - Helpers
 
-    private func color(for level: Int) -> Color {
+    private func cellColor(for level: Int) -> Color {
+        switch level {
+        case 0: return Color.secondary.opacity(0.12)
+        case 1: return Color(hex: "34C759").opacity(0.3)
+        case 2: return Color(hex: "34C759").opacity(0.5)
+        case 3: return Color(hex: "34C759").opacity(0.75)
+        default: return Color(hex: "34C759")
+        }
+    }
+
+    /// Builds week-columns for the last 5 months only.
+    /// Skips weeks before the first recorded day to avoid empty left columns.
+    private func buildWeeks() -> [[Date]] {
+        var cal = Calendar.current
+        cal.firstWeekday = 1  // Sunday
+        let today = cal.startOfDay(for: Date())
+        let fiveMonthsAgo = cal.date(byAdding: .month, value: -5, to: today)!
+
+        guard let earliest = store.daily.keys.min() else { return [] }
+        // Start from whichever is more recent: first data point or 5-month cutoff.
+        let displayFrom = earliest > fiveMonthsAgo ? earliest : fiveMonthsAgo
+
+        guard let firstWeek = cal.dateInterval(of: .weekOfYear, for: displayFrom)?.start else { return [] }
+
+        var weeks: [[Date]] = []
+        var weekStart = cal.startOfDay(for: firstWeek)
+        while weekStart <= today {
+            var week: [Date] = []
+            for offset in 0..<7 {
+                week.append(cal.date(byAdding: .day, value: offset, to: weekStart)!)
+            }
+            weeks.append(week)
+            weekStart = cal.date(byAdding: .day, value: 7, to: weekStart)!
+        }
+        return weeks
+    }
+}
+
+// MARK: - HeatmapCell
+
+private struct HeatmapCell: View {
+    let day: Date
+    let usage: DailyUsage?
+    let level: Int
+    let cellSize: CGFloat
+
+    @State private var showPopover = false
+
+    private static let dateFormatter: DateFormatter = {
+        let f = DateFormatter()
+        f.dateFormat = "EEE MMM d"
+        return f
+    }()
+
+    var body: some View {
+        RoundedRectangle(cornerRadius: 2)
+            .fill(cellColor)
+            .frame(width: cellSize, height: cellSize)
+            .help(Self.dateFormatter.string(from: day))
+            .onTapGesture { showPopover.toggle() }
+            .popover(isPresented: $showPopover, arrowEdge: .bottom) {
+                statsPopover
+            }
+    }
+
+    private var statsPopover: some View {
+        VStack(alignment: .leading, spacing: 6) {
+            Text(Self.dateFormatter.string(from: day))
+                .font(.system(size: 11, weight: .semibold))
+            HStack(spacing: 12) {
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("Cost")
+                        .font(.system(size: 9))
+                        .foregroundStyle(.secondary)
+                    Text(String(format: "$%.2f", usage?.cost ?? 0.0))
+                        .font(.system(size: 12, weight: .medium))
+                        .foregroundStyle(Color(hex: "34C759"))
+                }
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("Tokens")
+                        .font(.system(size: 9))
+                        .foregroundStyle(.secondary)
+                    Text(formatTokens(usage?.totalTokens ?? 0))
+                        .font(.system(size: 12, weight: .medium))
+                }
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("Requests")
+                        .font(.system(size: 9))
+                        .foregroundStyle(.secondary)
+                    Text("\(usage?.requestCount ?? 0)")
+                        .font(.system(size: 12, weight: .medium))
+                }
+            }
+        }
+        .padding(.horizontal, 14)
+        .padding(.vertical, 10)
+    }
+
+    private var cellColor: Color {
         switch level {
         case 0: return Color.secondary.opacity(0.12)
         case 1: return Color(hex: "34C759").opacity(0.3)
@@ -214,25 +266,5 @@ struct HistorySectionView: View {
         case 1_000...:     return String(format: "%.1fK", Double(n) / 1_000)
         default:           return "\(n)"
         }
-    }
-
-    private func buildWeeks() -> [[Date]] {
-        guard let earliest = store.daily.keys.min() else { return [] }
-        var cal = Calendar.current
-        cal.firstWeekday = 1  // Sunday
-        let today = cal.startOfDay(for: Date())
-        guard let firstWeek = cal.dateInterval(of: .weekOfYear, for: earliest)?.start else { return [] }
-
-        var weeks: [[Date]] = []
-        var weekStart = cal.startOfDay(for: firstWeek)
-        while weekStart <= today {
-            var week: [Date] = []
-            for offset in 0..<7 {
-                week.append(cal.date(byAdding: .day, value: offset, to: weekStart)!)
-            }
-            weeks.append(week)
-            weekStart = cal.date(byAdding: .day, value: 7, to: weekStart)!
-        }
-        return weeks
     }
 }
