@@ -32,6 +32,7 @@
 		A9E5E04A30FE269B60C109E5 /* AccountIdentityReaderTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA535C368188418C8EDA937D /* AccountIdentityReaderTests.swift */; };
 		AE6826286F3342336E69334F /* QuotaStoreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A7BC3E22213C6FB7BD15BCA8 /* QuotaStoreTests.swift */; };
 		B6017C34CD34472CF2C91D5F /* AccountIdentity.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4249760D989079C06472A761 /* AccountIdentity.swift */; };
+		BC9A07B512A9EF3411844266 /* DailyUsage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 15816BED7CC485278B671434 /* DailyUsage.swift */; };
 		C1F836EF39CB3DF51A3B6EB8 /* AccountStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 860909B94553172646B384CA /* AccountStore.swift */; };
 		C5957ED5668399AD08CFA66B /* JournalParserTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = DAEDD57994DB418484421DAF /* JournalParserTests.swift */; };
 		C905D889D7D6CB5C50457BE4 /* sample.jsonl in Resources */ = {isa = PBXBuildFile; fileRef = B3B221B66330E0BEA39714FA /* sample.jsonl */; };
@@ -39,12 +40,11 @@
 		D5E0433C1CD7E091EAB4D06D /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1EC4EC4BA75FA697D339087 /* SettingsView.swift */; };
 		E05B0120203A8F0C08977456 /* ServiceManagement.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 03A119C7D9E8051C55C7BCE6 /* ServiceManagement.framework */; };
 		EA234762CD10FD828553C77F /* AccountIdentityReader.swift in Sources */ = {isa = PBXBuildFile; fileRef = 342DAB71F53368342755A352 /* AccountIdentityReader.swift */; };
+		EDCBE8EF37D2FC649FCF1065 /* DailyUsageTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8C8F7B5E4A9E984E6843194C /* DailyUsageTests.swift */; };
 		F1CE0F664D94841B8FDEA65E /* UsageAggregator.swift in Sources */ = {isa = PBXBuildFile; fileRef = A7AD83F90E15650D8692126F /* UsageAggregator.swift */; };
 		F35903EAD790A1E32E705B5C /* ModelPricingTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C22179236CB7A8B9993BFDF3 /* ModelPricingTests.swift */; };
 		F6AD3701E65434DADB8DEB4E /* JournalEntry.swift in Sources */ = {isa = PBXBuildFile; fileRef = 61B1E75EF849C307F63A6954 /* JournalEntry.swift */; };
 		FCC389312BEBA2DBBFBB35DE /* UsageAggregatorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 96F5F145D51C897B34E62C5D /* UsageAggregatorTests.swift */; };
-		DAILY_USAGE_BUILD_001 /* DailyUsageTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = DAILY_USAGE_FILE_001 /* DailyUsageTests.swift */; };
-		E7F82A4B2C5D4A9F7D8E1B2C /* DailyUsage.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3E1D2C4B5A6E7F8D9C0A1B2 /* DailyUsage.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -60,6 +60,7 @@
 /* Begin PBXFileReference section */
 		03A119C7D9E8051C55C7BCE6 /* ServiceManagement.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = ServiceManagement.framework; path = System/Library/Frameworks/ServiceManagement.framework; sourceTree = SDKROOT; };
 		067F913BF5E4811D40B7102A /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		15816BED7CC485278B671434 /* DailyUsage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DailyUsage.swift; sourceTree = "<group>"; };
 		19C9E4AB4B542B52B6A02555 /* UsageView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UsageView.swift; sourceTree = "<group>"; };
 		1E3ADA1C09E653241A931D53 /* AccountStoreTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AccountStoreTests.swift; sourceTree = "<group>"; };
 		2474D14CA6FE96B0DB1D6DC8 /* CoreServices.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreServices.framework; path = System/Library/Frameworks/CoreServices.framework; sourceTree = SDKROOT; };
@@ -76,9 +77,8 @@
 		718F19AFF5BE7E43AC5366B9 /* QuotaStatusTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuotaStatusTests.swift; sourceTree = "<group>"; };
 		72D1B45335C4FE8064E53483 /* JournalParser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JournalParser.swift; sourceTree = "<group>"; };
 		860909B94553172646B384CA /* AccountStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AccountStore.swift; sourceTree = "<group>"; };
+		8C8F7B5E4A9E984E6843194C /* DailyUsageTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DailyUsageTests.swift; sourceTree = "<group>"; };
 		96F5F145D51C897B34E62C5D /* UsageAggregatorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UsageAggregatorTests.swift; sourceTree = "<group>"; };
-		DAILY_USAGE_FILE_001 /* DailyUsageTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DailyUsageTests.swift; sourceTree = "<group>"; };
-		F3E1D2C4B5A6E7F8D9C0A1B2 /* DailyUsage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DailyUsage.swift; sourceTree = "<group>"; };
 		9CF8C293FCCAD0CE2A0A2DC9 /* UsageSummary.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UsageSummary.swift; sourceTree = "<group>"; };
 		9FB9D709E70027ADB73762D0 /* QuotaStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuotaStore.swift; sourceTree = "<group>"; };
 		A22908B614E2A0E6DB64719F /* UsageStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UsageStore.swift; sourceTree = "<group>"; };
@@ -157,12 +157,12 @@
 				52AECCB5A723A06F1708C9CA /* AnthropicQuotaServiceTests.swift */,
 				D6CB7CDFC1E1DD464F5C99C1 /* AppSettingsTests.swift */,
 				30702EA54DFCC72A81C88AC8 /* ClaudeUsageTrackerBarTests.swift */,
+				8C8F7B5E4A9E984E6843194C /* DailyUsageTests.swift */,
 				DAEDD57994DB418484421DAF /* JournalParserTests.swift */,
 				C22179236CB7A8B9993BFDF3 /* ModelPricingTests.swift */,
 				718F19AFF5BE7E43AC5366B9 /* QuotaStatusTests.swift */,
 				A7BC3E22213C6FB7BD15BCA8 /* QuotaStoreTests.swift */,
 				96F5F145D51C897B34E62C5D /* UsageAggregatorTests.swift */,
-				DAILY_USAGE_FILE_001 /* DailyUsageTests.swift */,
 				AE4415E0BD756300CBE387AA /* Fixtures */,
 			);
 			path = ClaudeUsageTrackerBarTests;
@@ -189,7 +189,7 @@
 			isa = PBXGroup;
 			children = (
 				4249760D989079C06472A761 /* AccountIdentity.swift */,
-				F3E1D2C4B5A6E7F8D9C0A1B2 /* DailyUsage.swift */,
+				15816BED7CC485278B671434 /* DailyUsage.swift */,
 				61B1E75EF849C307F63A6954 /* JournalEntry.swift */,
 				E92E3E01BEA6966EA8AD1649 /* QuotaStatus.swift */,
 				9CF8C293FCCAD0CE2A0A2DC9 /* UsageSummary.swift */,
@@ -360,7 +360,7 @@
 				26D5AFB2E275008F201E3439 /* AppSettings.swift in Sources */,
 				4BD3DCD01CADF2141E94AEAE /* ClaudeUsageTrackerBarApp.swift in Sources */,
 				1BCC3991563644CF1433030B /* Color+Hex.swift in Sources */,
-				E7F82A4B2C5D4A9F7D8E1B2C /* DailyUsage.swift in Sources */,
+				BC9A07B512A9EF3411844266 /* DailyUsage.swift in Sources */,
 				4D85F76485CD15A16E4904A7 /* FileWatcher.swift in Sources */,
 				F6AD3701E65434DADB8DEB4E /* JournalEntry.swift in Sources */,
 				8305C51BFE8E888B1DD80373 /* JournalParser.swift in Sources */,
@@ -387,7 +387,7 @@
 				600557EF98D5C9577CE9EBA6 /* AnthropicQuotaServiceTests.swift in Sources */,
 				23DFC0568C7D13C7A8A9D84A /* AppSettingsTests.swift in Sources */,
 				37A6BFA7FA54FF4D1A3E9E0C /* ClaudeUsageTrackerBarTests.swift in Sources */,
-				DAILY_USAGE_BUILD_001 /* DailyUsageTests.swift in Sources */,
+				EDCBE8EF37D2FC649FCF1065 /* DailyUsageTests.swift in Sources */,
 				C5957ED5668399AD08CFA66B /* JournalParserTests.swift in Sources */,
 				F35903EAD790A1E32E705B5C /* ModelPricingTests.swift in Sources */,
 				4BCE57E6E91A8F8F911D1041 /* QuotaStatusTests.swift in Sources */,
