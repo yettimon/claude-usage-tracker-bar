@@ -376,7 +376,7 @@ struct StatusSectionView: View {
                         .font(.system(size: 8))
                         .foregroundStyle(status.indicator.color)
                     Text(status.description)
-                        .font(.system(size: 12))
+                        .font(.system(size: 11))
                         .foregroundStyle(.secondary)
                 }
                 .padding(.horizontal, 14)
