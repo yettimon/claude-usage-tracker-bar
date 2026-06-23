@@ -13,7 +13,7 @@ enum StatusIndicator: String, Decodable {
     }
 }
 
-struct ClaudeServiceStatus {
+struct ClaudeServiceStatus: Equatable {
     let indicator: StatusIndicator
     let description: String
     let updatedAt: Date
