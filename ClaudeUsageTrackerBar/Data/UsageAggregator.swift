@@ -6,6 +6,7 @@ enum UsageAggregator {
         let today: UsageSummary
         let last30Days: UsageSummary
         let allTime: UsageSummary
+        let daily: [Date: DailyUsage]
     }
 
     static func aggregate(entries: [JournalEntry], referenceDate: Date = Date(), costMode: CostMode = .auto) -> Result {
@@ -16,7 +17,8 @@ enum UsageAggregator {
         return Result(
             today: summarize(entries.filter { $0.timestamp >= startOfToday }, costMode: costMode),
             last30Days: summarize(entries.filter { $0.timestamp >= thirtyDaysAgo }, costMode: costMode),
-            allTime: summarize(entries, costMode: costMode)
+            allTime: summarize(entries, costMode: costMode),
+            daily: dailyBuckets(entries, costMode: costMode, calendar: calendar)
         )
     }
 
@@ -40,6 +42,23 @@ enum UsageAggregator {
             .map { $0.key }
 
         return summary
+    }
+
+    private static func dailyBuckets(_ entries: [JournalEntry], costMode: CostMode, calendar: Calendar) -> [Date: DailyUsage] {
+        var acc: [Date: (cost: Double, tokens: Int, requests: Int)] = [:]
+        for entry in entries {
+            let day = calendar.startOfDay(for: entry.timestamp)
+            var bucket = acc[day] ?? (0, 0, 0)
+            bucket.cost += entryCost(entry, mode: costMode)
+            bucket.tokens += entry.totalTokens
+            bucket.requests += 1
+            acc[day] = bucket
+        }
+        var result: [Date: DailyUsage] = [:]
+        for (day, b) in acc {
+            result[day] = DailyUsage(date: day, cost: b.cost, totalTokens: b.tokens, requestCount: b.requests)
+        }
+        return result
     }
 
     private static func entryCost(_ entry: JournalEntry, mode: CostMode) -> Double {
