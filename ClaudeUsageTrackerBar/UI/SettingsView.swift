@@ -128,28 +128,6 @@ struct SettingsView: View {
             Divider().opacity(0.25)
 
             HStack {
-                Text("Scrollable popup")
-                    .font(.system(size: 12))
-                Spacer()
-                Toggle("", isOn: Binding(
-                    get: { settings.scrollablePopup },
-                    set: { settings.setScrollablePopup($0) }
-                ))
-                .labelsHidden()
-                .toggleStyle(.switch)
-            }
-            .padding(.horizontal, 14)
-            .padding(.vertical, 10)
-
-            Text("Cap popup height and scroll instead of expanding")
-                .font(.system(size: 10))
-                .foregroundStyle(.secondary)
-                .padding(.horizontal, 14)
-                .padding(.bottom, 10)
-
-            Divider().opacity(0.25)
-
-            HStack {
                 Text("Show in menu bar")
                     .font(.system(size: 12))
                 Spacer()
@@ -250,6 +228,54 @@ struct SettingsView: View {
                 .fixedSize(horizontal: false, vertical: true)
                 .padding(.horizontal, 14)
                 .padding(.bottom, 10)
+
+            Divider().opacity(0.25)
+
+            HStack {
+                Text("Show Today")
+                    .font(.system(size: 12))
+                Spacer()
+                Toggle("", isOn: Binding(
+                    get: { settings.showToday },
+                    set: { settings.setShowToday($0) }
+                ))
+                .labelsHidden()
+                .toggleStyle(.switch)
+            }
+            .padding(.horizontal, 14)
+            .padding(.vertical, 10)
+
+            Divider().opacity(0.25)
+
+            HStack {
+                Text("Show Last 30 Days")
+                    .font(.system(size: 12))
+                Spacer()
+                Toggle("", isOn: Binding(
+                    get: { settings.showLast30Days },
+                    set: { settings.setShowLast30Days($0) }
+                ))
+                .labelsHidden()
+                .toggleStyle(.switch)
+            }
+            .padding(.horizontal, 14)
+            .padding(.vertical, 10)
+
+            Divider().opacity(0.25)
+
+            HStack {
+                Text("Show All Time")
+                    .font(.system(size: 12))
+                Spacer()
+                Toggle("", isOn: Binding(
+                    get: { settings.showAllTime },
+                    set: { settings.setShowAllTime($0) }
+                ))
+                .labelsHidden()
+                .toggleStyle(.switch)
+            }
+            .padding(.horizontal, 14)
+            .padding(.vertical, 10)
 
             Divider().opacity(0.25)
 
