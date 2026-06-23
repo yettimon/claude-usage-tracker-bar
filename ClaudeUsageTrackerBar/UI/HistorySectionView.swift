@@ -57,7 +57,7 @@ struct HistorySectionView: View {
         return HStack(alignment: .top, spacing: labelGap) {
             // Fixed day-of-week labels (left) — stay put while grid scrolls.
             VStack(spacing: gap) {
-                Color.clear.frame(height: 11)  // align under month-label row
+                Color.clear.frame(width: labelWidth, height: 11)  // align under month-label row
                 ForEach(0..<7, id: \.self) { i in
                     Text(dayLabelTexts[i])
                         .font(.system(size: 9))
@@ -85,6 +85,7 @@ struct HistorySectionView: View {
                         }
                     }
                 }
+                .frame(maxWidth: .infinity)
                 .onAppear {
                     if !weeks.isEmpty { proxy.scrollTo(weeks.count - 1, anchor: .trailing) }
                 }
