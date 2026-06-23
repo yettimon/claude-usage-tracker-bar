@@ -85,10 +85,19 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         ) { [weak self] _ in
             Task { @MainActor [weak self] in
                 guard let self, self.settings.showQuota else { return }
-                // Wait for network and keychain to settle after wake.
-                try? await Task.sleep(for: .seconds(3))
-                await self.quotaStore.fetch()
+                await self.retryQuotaFetchAfterWake()
             }
+        }
+    }
+
+    private func retryQuotaFetchAfterWake() async {
+        let delays: [Duration] = [.seconds(3), .seconds(6), .seconds(12)]
+        for delay in delays {
+            try? await Task.sleep(for: delay)
+            guard !Task.isCancelled else { return }
+            await quotaStore.fetch()
+            // Stop on success or auth error — only retry for network errors
+            if quotaStore.error == nil || quotaStore.error == .notSignedIn { return }
         }
     }
 

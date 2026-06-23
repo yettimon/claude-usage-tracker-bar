@@ -28,7 +28,6 @@ final class AppSettings: ObservableObject {
     @Published private(set) var showToday: Bool
     @Published private(set) var showLast30Days: Bool
     @Published private(set) var showAllTime: Bool
-    @Published var scrollablePopup: Bool
 
     init() {
         let stored = UserDefaults.standard.object(forKey: "launchAtLogin") as? Bool
@@ -46,7 +45,6 @@ final class AppSettings: ObservableObject {
         showToday = UserDefaults.standard.object(forKey: "showToday") as? Bool ?? true
         showLast30Days = UserDefaults.standard.object(forKey: "showLast30Days") as? Bool ?? true
         showAllTime = UserDefaults.standard.object(forKey: "showAllTime") as? Bool ?? true
-        scrollablePopup = UserDefaults.standard.bool(forKey: "scrollablePopup")
         if stored == nil {
             applyLaunchAtLogin(true)
         }
@@ -109,11 +107,6 @@ final class AppSettings: ObservableObject {
     func setShowAllTime(_ enabled: Bool) {
         showAllTime = enabled
         UserDefaults.standard.set(enabled, forKey: "showAllTime")
-    }
-
-    func setScrollablePopup(_ enabled: Bool) {
-        scrollablePopup = enabled
-        UserDefaults.standard.set(enabled, forKey: "scrollablePopup")
     }
 
     private func applyLaunchAtLogin(_ enabled: Bool) {
