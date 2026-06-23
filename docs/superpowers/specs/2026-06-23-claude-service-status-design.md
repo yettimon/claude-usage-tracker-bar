@@ -24,6 +24,8 @@ Add a compact status section to the popover showing the live operational status 
 
 **Indicator values:** `none` | `minor` | `major` | `critical`
 
+`page.updated_at` (ISO 8601 string) is also decoded — represents when Anthropic last changed the status page, shown as a relative timestamp in the UI.
+
 ## Indicator → UI Mapping
 
 | API indicator | Visual state | Color      |
@@ -46,6 +48,7 @@ enum StatusIndicator: String, Decodable {
 struct ClaudeServiceStatus {
     let indicator: StatusIndicator
     let description: String
+    let updatedAt: Date   // from page.updated_at — when Anthropic last changed status
     let fetchedAt: Date
 }
 ```
@@ -69,11 +72,18 @@ Compact section matching QuotaSectionView structure:
 ```
 STATUS
 ● All Systems Operational
+  updated just now
 ─────────────────────────
 ```
 
-- Section header label "STATUS" (10pt, secondary, same style as "QUOTA"/"ACCOUNT")
-- Single row: `circle.fill` SF Symbol (size 8) + description text (12pt secondary)
+- Section header "STATUS" (10pt, secondary, matching "QUOTA"/"ACCOUNT")
+- Row 1: `circle.fill` SF Symbol (size 8) + description text (12pt secondary)
+- Row 2: "updated X ago" timestamp (10pt, secondary opacity 0.7) — indented to align with description text
+- Relative time format:
+  - `< 60s` → "updated just now"
+  - `< 60m` → "updated N minutes ago" (or "1 minute ago")
+  - `≥ 60m` → "updated N hours ago"
+- Timestamp updates live via a 60-second `Timer` published into the view (same pattern as quota's reset countdown)
 - Divider below
 - Hidden entirely when `status == nil` (loading or error) — no spinner, no error state
 
@@ -104,6 +114,7 @@ if settings.showHistory { HistorySectionView(...) }
 
 - `ClaudeStatusService` behind `StatusFetching` protocol — mockable
 - Unit test: indicator mapping (none→green, minor→yellow, major→yellow, critical→red)
+- Unit test: relative time formatting (just now / N minutes / N hours)
 - Unit test: `refreshIfStale()` skips fetch when data fresh, fetches when stale/nil
 - No UI snapshot tests needed
 
