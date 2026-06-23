@@ -7,11 +7,15 @@ struct HistorySectionView: View {
     private let cellSize: CGFloat = 13
     private let cellGap: CGFloat = 3
 
+    @State private var hoverInfo: (date: Date, usage: DailyUsage?)?
+
     var body: some View {
-        // Hide entirely when there is no history at all (mirrors quota's render-nothing guard).
         if !store.daily.isEmpty {
             VStack(alignment: .leading, spacing: 0) {
                 header
+                if let info = hoverInfo {
+                    hoverRow(date: info.date, usage: info.usage)
+                }
                 gridArea
                 legend
                 Divider().opacity(0.25)
@@ -32,16 +36,50 @@ struct HistorySectionView: View {
                     Button(metric.label) { settings.setHistoryMetric(metric) }
                 }
             } label: {
-                Text(settings.historyMetric.label)
-                    .font(.system(size: 10))
-                    .foregroundStyle(.secondary)
+                HStack(spacing: 2) {
+                    Text(settings.historyMetric.label)
+                    Image(systemName: "chevron.down")
+                        .font(.system(size: 8))
+                }
+                .font(.system(size: 10))
+                .foregroundStyle(.secondary)
             }
             .menuStyle(.borderlessButton)
             .fixedSize()
         }
         .padding(.horizontal, 14)
         .padding(.top, 10)
-        .padding(.bottom, 6)
+        .padding(.bottom, 4)
+    }
+
+    // MARK: - Hover stats row
+
+    private func hoverRow(date: Date, usage: DailyUsage?) -> some View {
+        let f = DateFormatter()
+        f.dateFormat = "EEE MMM d"
+        return HStack(spacing: 4) {
+            Text(f.string(from: date))
+                .font(.system(size: 10, weight: .medium))
+                .foregroundStyle(.secondary)
+            Spacer()
+            Text(String(format: "$%.2f", usage?.cost ?? 0.0))
+                .font(.system(size: 10))
+                .foregroundStyle(Color(hex: "34C759"))
+            Text("·")
+                .font(.system(size: 10))
+                .foregroundStyle(.secondary.opacity(0.4))
+            Text(formatTokens(usage?.totalTokens ?? 0))
+                .font(.system(size: 10))
+                .foregroundStyle(.secondary)
+            Text("·")
+                .font(.system(size: 10))
+                .foregroundStyle(.secondary.opacity(0.4))
+            Text("\(usage?.requestCount ?? 0) req")
+                .font(.system(size: 10))
+                .foregroundStyle(.secondary)
+        }
+        .padding(.horizontal, 14)
+        .padding(.bottom, 4)
     }
 
     // MARK: - Grid
@@ -81,18 +119,19 @@ struct HistorySectionView: View {
                     }
                     .padding(.trailing, 14)
                 }
+                .frame(maxWidth: .infinity)
                 .onAppear {
                     if !weeks.isEmpty { proxy.scrollTo(weeks.count - 1, anchor: .trailing) }
                 }
             }
         }
         .padding(.leading, 14)
+        .frame(maxWidth: .infinity)
     }
 
     @ViewBuilder
     private func cell(for day: Date, today: Date) -> some View {
         if day > today {
-            // Future day in the current week — blank, not a level-0 cell.
             Color.clear.frame(width: cellSize, height: cellSize)
         } else {
             let usage = store.daily[day]
@@ -100,7 +139,9 @@ struct HistorySectionView: View {
             RoundedRectangle(cornerRadius: 2)
                 .fill(color(for: level))
                 .frame(width: cellSize, height: cellSize)
-                .help(tooltip(for: day, usage: usage))
+                .onHover { isHovering in
+                    hoverInfo = isHovering ? (day, usage) : nil
+                }
         }
     }
 
@@ -167,29 +208,14 @@ struct HistorySectionView: View {
         }
     }
 
-    private func tooltip(for day: Date, usage: DailyUsage?) -> String {
-        let f = DateFormatter()
-        f.dateFormat = "EEE MMM d"
-        let dateStr = f.string(from: day)
-        let valueStr: String
-        switch settings.historyMetric {
-        case .cost:     valueStr = String(format: "$%.2f", usage?.cost ?? 0)
-        case .tokens:   valueStr = formatTokens(usage?.totalTokens ?? 0)
-        case .requests: valueStr = "\(usage?.requestCount ?? 0) requests"
-        }
-        return "\(dateStr) — \(valueStr)"
-    }
-
     private func formatTokens(_ n: Int) -> String {
         switch n {
-        case 1_000_000...: return String(format: "%.1fM tokens", Double(n) / 1_000_000)
-        case 1_000...:     return String(format: "%.1fK tokens", Double(n) / 1_000)
-        default:           return "\(n) tokens"
+        case 1_000_000...: return String(format: "%.1fM", Double(n) / 1_000_000)
+        case 1_000...:     return String(format: "%.1fK", Double(n) / 1_000)
+        default:           return "\(n)"
         }
     }
 
-    /// Builds week-columns (Sunday-first) from the start of the week containing the
-    /// earliest recorded day through the current week.
     private func buildWeeks() -> [[Date]] {
         guard let earliest = store.daily.keys.min() else { return [] }
         var cal = Calendar.current
