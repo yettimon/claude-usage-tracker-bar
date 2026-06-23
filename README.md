@@ -15,6 +15,7 @@ A lightweight native macOS menu bar app that shows your [Claude Code](https://cl
 - **Cost estimate** — calculated via [LiteLLM](https://github.com/BerriAI/litellm) pricing data (fetched on launch, cached 24h) with fallback to bundled rates
 - **Colored menu bar icon** — orange spark + gold coin stack, visible on any menu bar
 - **Quota tracking** — 5-hour and weekly utilization bars fetched from Anthropic's usage endpoint, color-coded green / yellow / red with reset countdowns; auto-retries on wake from sleep
+- **Usage history heatmap** — GitHub-style daily activity grid for the past 5 months; switchable metric (cost, tokens, requests); click any cell for a detailed breakdown
 - **Quick access** — gear and quit buttons always visible in popup header
 - **Launch at login** — enabled by default via SMAppService
 - **Debug mode** — shows exact token counts with thousands separators instead of K/M
@@ -27,13 +28,9 @@ A lightweight native macOS menu bar app that shows your [Claude Code](https://cl
 </p>
 
 <p align="center">
-  <img src="docs/screenshots/Screenshot%202026-06-23%20at%2012.12.32.png" width="260" alt="Usage popup"/>
+  <img src="docs/screenshots/Screenshot%202026-06-23%20at%2015.34.11.png" width="260" alt="Usage popup with heatmap"/>
   &nbsp;&nbsp;
-  <img src="docs/screenshots/Screenshot%202026-06-23%20at%2012.12.14.png" width="260" alt="Settings"/>
-</p>
-
-<p align="center">
-  <img src="docs/screenshots/Screenshot%202026-06-23%20at%2012.11.08.png" width="260" alt="All sections expanded"/>
+  <img src="docs/screenshots/Screenshot%202026-06-23%20at%2015.34.48.png" width="260" alt="Settings"/>
 </p>
 
 ## Install
