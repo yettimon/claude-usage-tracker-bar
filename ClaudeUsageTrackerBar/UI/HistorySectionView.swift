@@ -4,8 +4,13 @@ struct HistorySectionView: View {
     @ObservedObject var store: UsageStore
     @ObservedObject var settings: AppSettings
 
-    private let cellSize: CGFloat = 13
-    private let cellGap: CGFloat = 3
+    // Window is a fixed 280pt (UsageView). Derive cell size to exactly fill width — no scroll.
+    private let windowWidth: CGFloat = 280
+    private let hPad: CGFloat = 14
+    private let labelWidth: CGFloat = 12
+    private let labelGap: CGFloat = 4
+    private let gap: CGFloat = 2
+    private let maxWeeks = 22  // ≈ 5 months
 
     var body: some View {
         if !store.daily.isEmpty {
@@ -48,67 +53,59 @@ struct HistorySectionView: View {
     private var gridArea: some View {
         let weeks = buildWeeks()
         let today = Calendar.current.startOfDay(for: Date())
+        let cell = cellSize(weekCount: weeks.count)
         let dayLabelTexts = ["", "M", "", "W", "", "F", ""]
 
-        return HStack(alignment: .top, spacing: 4) {
-            VStack(spacing: cellGap) {
-                Color.clear.frame(height: 11)
+        return HStack(alignment: .top, spacing: labelGap) {
+            // Day-of-week labels (left).
+            VStack(spacing: gap) {
+                Color.clear.frame(height: 11)  // align under month-label row
                 ForEach(0..<7, id: \.self) { i in
                     Text(dayLabelTexts[i])
                         .font(.system(size: 9))
                         .foregroundStyle(.secondary.opacity(0.7))
-                        .frame(width: 12, height: cellSize, alignment: .leading)
+                        .frame(width: labelWidth, height: cell, alignment: .leading)
                 }
             }
 
-            ScrollViewReader { proxy in
-                ScrollView(.horizontal, showsIndicators: false) {
-                    VStack(alignment: .leading, spacing: cellGap) {
-                        monthLabels(weeks)
-                        HStack(alignment: .top, spacing: cellGap) {
-                            ForEach(Array(weeks.enumerated()), id: \.offset) { index, week in
-                                VStack(spacing: cellGap) {
-                                    ForEach(week, id: \.self) { day in
-                                        cellView(for: day, today: today)
-                                    }
-                                }
-                                .id(index)
+            // Month labels + week columns.
+            VStack(alignment: .leading, spacing: gap) {
+                monthLabels(weeks, cell: cell)
+                HStack(alignment: .top, spacing: gap) {
+                    ForEach(Array(weeks.enumerated()), id: \.offset) { _, week in
+                        VStack(spacing: gap) {
+                            ForEach(week, id: \.self) { day in
+                                cellView(for: day, today: today, cell: cell)
                             }
                         }
                     }
-                    .padding(.trailing, 14)
-                }
-                .frame(maxWidth: .infinity)
-                .onAppear {
-                    if !weeks.isEmpty { proxy.scrollTo(weeks.count - 1, anchor: .trailing) }
                 }
             }
         }
-        .padding(.leading, 14)
-        .frame(maxWidth: .infinity)
+        .padding(.horizontal, hPad)
     }
 
     @ViewBuilder
-    private func cellView(for day: Date, today: Date) -> some View {
+    private func cellView(for day: Date, today: Date, cell: CGFloat) -> some View {
         if day > today {
-            Color.clear.frame(width: cellSize, height: cellSize)
+            Color.clear.frame(width: cell, height: cell)
         } else {
             let usage = store.daily[day]
             let level = usage.map { historyLevel($0, metric: settings.historyMetric) } ?? 0
-            HeatmapCell(day: day, usage: usage, level: level, cellSize: cellSize)
+            HeatmapCell(day: day, usage: usage, level: level, cellSize: cell)
         }
     }
 
     // MARK: - Month labels
 
-    private func monthLabels(_ weeks: [[Date]]) -> some View {
-        HStack(spacing: cellGap) {
+    private func monthLabels(_ weeks: [[Date]], cell: CGFloat) -> some View {
+        HStack(spacing: gap) {
             ForEach(Array(monthSegments(weeks).enumerated()), id: \.offset) { _, seg in
                 Text(seg.label)
                     .font(.system(size: 9))
                     .foregroundStyle(.secondary.opacity(0.7))
                     .frame(
-                        width: CGFloat(seg.weekCount) * cellSize + CGFloat(seg.weekCount - 1) * cellGap,
+                        width: CGFloat(seg.weekCount) * cell + CGFloat(seg.weekCount - 1) * gap,
                         alignment: .leading
                     )
             }
@@ -152,6 +149,13 @@ struct HistorySectionView: View {
 
     // MARK: - Helpers
 
+    /// Cell size that makes `weekCount` columns exactly fill the window width.
+    private func cellSize(weekCount: Int) -> CGFloat {
+        let count = max(weekCount, 1)
+        let avail = windowWidth - 2 * hPad - labelWidth - labelGap
+        return (avail - CGFloat(count - 1) * gap) / CGFloat(count)
+    }
+
     private func cellColor(for level: Int) -> Color {
         switch level {
         case 0: return Color.secondary.opacity(0.12)
@@ -162,15 +166,17 @@ struct HistorySectionView: View {
         }
     }
 
-    /// Always builds exactly 22 weeks ending today (≈5 months).
-    /// Empty cells for weeks before first data — ensures content is always wider
-    /// than viewport so scrollTo(trailing) fills 100% width correctly.
+    /// Week-columns (Sunday-first) from the more recent of: first recorded day,
+    /// or `maxWeeks` ago. Cell size then scales so these columns fill the full width.
     private func buildWeeks() -> [[Date]] {
         var cal = Calendar.current
         cal.firstWeekday = 1  // Sunday
         let today = cal.startOfDay(for: Date())
-        let startDate = cal.date(byAdding: .day, value: -(22 * 7), to: today)!
-        guard let firstWeek = cal.dateInterval(of: .weekOfYear, for: startDate)?.start else { return [] }
+        let cutoff = cal.date(byAdding: .day, value: -(maxWeeks * 7 - 1), to: today)!
+
+        guard let earliest = store.daily.keys.min() else { return [] }
+        let displayFrom = earliest > cutoff ? earliest : cutoff
+        guard let firstWeek = cal.dateInterval(of: .weekOfYear, for: displayFrom)?.start else { return [] }
 
         var weeks: [[Date]] = []
         var weekStart = cal.startOfDay(for: firstWeek)
@@ -208,7 +214,7 @@ private struct HeatmapCell: View {
             RoundedRectangle(cornerRadius: 2).fill(cellColor)
             if isHovering {
                 RoundedRectangle(cornerRadius: 2)
-                    .stroke(Color.white.opacity(0.5), lineWidth: 1)
+                    .stroke(Color.white.opacity(0.6), lineWidth: 1)
             }
         }
         .frame(width: cellSize, height: cellSize)
