@@ -3,6 +3,7 @@ import SwiftUI
 struct UsageView: View {
     @ObservedObject var store: UsageStore
     @ObservedObject var quotaStore: QuotaStore
+    @ObservedObject var statusStore: ClaudeStatusStore
     @ObservedObject var accountStore: AccountStore
     @ObservedObject var settings: AppSettings
     @State private var showSettings = false
@@ -25,6 +26,7 @@ struct UsageView: View {
                 onSettings: { showSettings = true },
                 onQuit: { NSApp.terminate(nil) }
             )
+            StatusSectionView(statusStore: statusStore)
             if settings.showQuota {
                 QuotaSectionView(quotaStore: quotaStore)
             }
