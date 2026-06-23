@@ -96,8 +96,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             try? await Task.sleep(for: delay)
             guard !Task.isCancelled else { return }
             await quotaStore.fetch()
-            // Stop on success or auth error — only retry for network errors
-            if quotaStore.error == nil || quotaStore.error == .notSignedIn { return }
+            // Stop on success, auth error, or rate limit — only retry for network errors
+            if quotaStore.error == nil || quotaStore.error == .notSignedIn || quotaStore.error == .rateLimited { return }
         }
     }
 

@@ -1,6 +1,11 @@
 import SwiftUI
 
 private let changelog: [(version: String, date: String, items: [String])] = [
+    ("0.1.19", "Jun 2026", [
+        "Quick-access gear and quit buttons in popup header",
+        "Section visibility toggles (Today, Last 30 Days, All Time)",
+        "Improved connection retry after sleep (3 attempts with backoff)"
+    ]),
     ("0.1.18", "Jun 2026", [
         "Correct cost for long-context requests: >200K-token prompts now apply Anthropic's premium rates",
         "Price 1-hour cache writes at the correct rate (separate from 5-minute writes)"

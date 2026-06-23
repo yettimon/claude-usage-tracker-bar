@@ -29,16 +29,16 @@ struct UsageView: View {
                 QuotaSectionView(quotaStore: quotaStore)
             }
             if settings.showToday {
-                UsageSectionView(title: "Today", summary: store.today, debugMode: settings.debugMode, animateUpdates: settings.animateUpdates)
                 Divider().opacity(0.25)
+                UsageSectionView(title: "Today", summary: store.today, debugMode: settings.debugMode, animateUpdates: settings.animateUpdates)
             }
             if settings.showLast30Days {
-                UsageSectionView(title: "Last 30 Days", summary: store.last30Days, debugMode: settings.debugMode, animateUpdates: settings.animateUpdates)
                 Divider().opacity(0.25)
+                UsageSectionView(title: "Last 30 Days", summary: store.last30Days, debugMode: settings.debugMode, animateUpdates: settings.animateUpdates)
             }
             if settings.showAllTime {
-                UsageSectionView(title: "All Time", summary: store.allTime, debugMode: settings.debugMode, animateUpdates: settings.animateUpdates)
                 Divider().opacity(0.25)
+                UsageSectionView(title: "All Time", summary: store.allTime, debugMode: settings.debugMode, animateUpdates: settings.animateUpdates)
             }
         }
         .frame(maxHeight: 700)
