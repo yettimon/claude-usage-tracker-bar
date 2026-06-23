@@ -51,9 +51,9 @@ final class AppSettingsTests: XCTestCase {
         XCTAssertFalse(settings2.showToday)
     }
 
-    func test_showLast30Days_defaultsTrue() {
+    func test_showLast30Days_defaultsFalse() {
         let settings = AppSettings()
-        XCTAssertTrue(settings.showLast30Days)
+        XCTAssertFalse(settings.showLast30Days)
     }
 
     func test_showLast30Days_persists() {
@@ -63,9 +63,9 @@ final class AppSettingsTests: XCTestCase {
         XCTAssertFalse(settings2.showLast30Days)
     }
 
-    func test_showAllTime_defaultsTrue() {
+    func test_showAllTime_defaultsFalse() {
         let settings = AppSettings()
-        XCTAssertTrue(settings.showAllTime)
+        XCTAssertFalse(settings.showAllTime)
     }
 
     func test_showAllTime_persists() {

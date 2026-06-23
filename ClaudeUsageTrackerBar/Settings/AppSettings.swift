@@ -43,8 +43,8 @@ final class AppSettings: ObservableObject {
         costMode = CostMode(rawValue: rawCostMode) ?? .auto
         showQuota = UserDefaults.standard.object(forKey: "showQuota") as? Bool ?? true
         showToday = UserDefaults.standard.object(forKey: "showToday") as? Bool ?? true
-        showLast30Days = UserDefaults.standard.object(forKey: "showLast30Days") as? Bool ?? true
-        showAllTime = UserDefaults.standard.object(forKey: "showAllTime") as? Bool ?? true
+        showLast30Days = UserDefaults.standard.object(forKey: "showLast30Days") as? Bool ?? false
+        showAllTime = UserDefaults.standard.object(forKey: "showAllTime") as? Bool ?? false
         if stored == nil {
             applyLaunchAtLogin(true)
         }
