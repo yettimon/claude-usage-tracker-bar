@@ -3,6 +3,7 @@ import SwiftUI
 struct UsageView: View {
     @ObservedObject var store: UsageStore
     @ObservedObject var quotaStore: QuotaStore
+    @ObservedObject var statusStore: ClaudeStatusStore
     @ObservedObject var accountStore: AccountStore
     @ObservedObject var settings: AppSettings
     @State private var showSettings = false
@@ -25,6 +26,7 @@ struct UsageView: View {
                 onSettings: { showSettings = true },
                 onQuit: { NSApp.terminate(nil) }
             )
+            StatusSectionView(statusStore: statusStore)
             if settings.showQuota {
                 QuotaSectionView(quotaStore: quotaStore)
             }
@@ -348,5 +350,58 @@ struct QuotaSectionView: View {
         case .rateLimited:  return "Rate limited — retry in 5 min"
         case nil:           return ""
         }
+    }
+}
+
+// MARK: - Service status
+
+struct StatusSectionView: View {
+    @ObservedObject var statusStore: ClaudeStatusStore
+    @State private var now = Date()
+
+    private let timer = Timer.publish(every: 60, on: .main, in: .common).autoconnect()
+
+    var body: some View {
+        if let status = statusStore.status {
+            VStack(alignment: .leading, spacing: 0) {
+                Text("STATUS")
+                    .font(.system(size: 10))
+                    .foregroundStyle(.secondary.opacity(0.7))
+                    .padding(.horizontal, 14)
+                    .padding(.top, 10)
+                    .padding(.bottom, 6)
+
+                HStack(spacing: 6) {
+                    Image(systemName: "circle.fill")
+                        .font(.system(size: 8))
+                        .foregroundStyle(status.indicator.color)
+                    Text(status.description)
+                        .font(.system(size: 11))
+                        .foregroundStyle(.secondary)
+                }
+                .padding(.horizontal, 14)
+                .padding(.bottom, 2)
+
+                Text(StatusSectionView.relativeTime(from: status.updatedAt, to: now))
+                    .font(.system(size: 10))
+                    .foregroundStyle(.secondary.opacity(0.7))
+                    .padding(.horizontal, 14)
+                    .padding(.bottom, 8)
+
+                Divider().opacity(0.25)
+            }
+            .onReceive(timer) { now = $0 }
+        }
+    }
+
+    static func relativeTime(from date: Date, to now: Date) -> String {
+        let seconds = now.timeIntervalSince(date)
+        if seconds < 60 { return "updated just now" }
+        let minutes = Int(seconds / 60)
+        if minutes < 60 {
+            return minutes == 1 ? "updated 1 minute ago" : "updated \(minutes) minutes ago"
+        }
+        let hours = Int(seconds / 3600)
+        return hours == 1 ? "updated 1 hour ago" : "updated \(hours) hours ago"
     }
 }
