@@ -19,41 +19,28 @@ struct UsageView: View {
     }
 
     private var mainView: some View {
-        let content = VStack(alignment: .leading, spacing: 0) {
-            AccountRowView(accountStore: accountStore)
+        VStack(alignment: .leading, spacing: 0) {
+            AccountRowView(
+                accountStore: accountStore,
+                onSettings: { showSettings = true },
+                onQuit: { NSApp.terminate(nil) }
+            )
             if settings.showQuota {
                 QuotaSectionView(quotaStore: quotaStore)
             }
-            UsageSectionView(title: "Today", summary: store.today, debugMode: settings.debugMode, animateUpdates: settings.animateUpdates)
-            Divider().opacity(0.25)
-            UsageSectionView(title: "Last 30 Days", summary: store.last30Days, debugMode: settings.debugMode, animateUpdates: settings.animateUpdates)
-            Divider().opacity(0.25)
-            UsageSectionView(title: "All Time", summary: store.allTime, debugMode: settings.debugMode, animateUpdates: settings.animateUpdates)
-            Divider().opacity(0.25)
-            menuRow("Settings") { showSettings = true }
-            menuRow("Quit", isDestructive: true) { NSApp.terminate(nil) }
-        }
-        return Group {
-            if settings.scrollablePopup {
-                ScrollView(.vertical, showsIndicators: false) { content }
-                    .frame(maxHeight: 500)
-            } else {
-                content
+            if settings.showToday {
+                Divider().opacity(0.25)
+                UsageSectionView(title: "Today", summary: store.today, debugMode: settings.debugMode, animateUpdates: settings.animateUpdates)
+            }
+            if settings.showLast30Days {
+                Divider().opacity(0.25)
+                UsageSectionView(title: "Last 30 Days", summary: store.last30Days, debugMode: settings.debugMode, animateUpdates: settings.animateUpdates)
+            }
+            if settings.showAllTime {
+                Divider().opacity(0.25)
+                UsageSectionView(title: "All Time", summary: store.allTime, debugMode: settings.debugMode, animateUpdates: settings.animateUpdates)
             }
         }
-    }
-
-    private func menuRow(_ label: String, isDestructive: Bool = false, action: @escaping () -> Void) -> some View {
-        Button(action: action) {
-            Text(label)
-                .font(.system(size: 12))
-                .foregroundStyle(isDestructive ? Color.red : Color.primary.opacity(0.85))
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .padding(.horizontal, 14)
-                .padding(.vertical, 7)
-        }
-        .buttonStyle(.plain)
-        .contentShape(Rectangle())
     }
 }
 
@@ -168,19 +155,37 @@ struct StatRowView: View {
 
 struct AccountRowView: View {
     @ObservedObject var accountStore: AccountStore
+    let onSettings: () -> Void
+    let onQuit: () -> Void
 
     var body: some View {
-        if let identity = accountStore.identity {
-            VStack(alignment: .leading, spacing: 0) {
+        VStack(alignment: .leading, spacing: 0) {
+            HStack(alignment: .center) {
                 Text("ACCOUNT")
                     .font(.system(size: 10))
                     .foregroundStyle(.secondary.opacity(0.7))
-                    .padding(.horizontal, 14)
-                    .padding(.top, 10)
-                    .padding(.bottom, 6)
+                Spacer()
+                Button(action: onSettings) {
+                    Image(systemName: "gear")
+                        .font(.system(size: 12))
+                        .foregroundStyle(.secondary)
+                }
+                .buttonStyle(.plain)
+                .padding(.leading, 8)
+                Button(action: onQuit) {
+                    Image(systemName: "xmark")
+                        .font(.system(size: 12))
+                        .foregroundStyle(.secondary)
+                }
+                .buttonStyle(.plain)
+                .padding(.leading, 4)
+            }
+            .padding(.horizontal, 14)
+            .padding(.top, 10)
+            .padding(.bottom, 6)
 
+            if let identity = accountStore.identity {
                 VStack(alignment: .leading, spacing: 2) {
-                    // Full email, no truncation — wrap to a second line if needed.
                     Text(identity.email)
                         .font(.system(size: 11))
                         .foregroundStyle(.secondary)
@@ -193,9 +198,9 @@ struct AccountRowView: View {
                 }
                 .padding(.horizontal, 14)
                 .padding(.bottom, 8)
-
-                Divider().opacity(0.25)
             }
+
+            Divider().opacity(0.25)
         }
     }
 }
@@ -301,6 +306,7 @@ struct QuotaSectionView: View {
                     .font(.system(size: 11))
                     .foregroundStyle(.secondary)
             }
+            .frame(height: 28)
             .padding(.horizontal, 14)
         } else {
             errorRow(compact: false)

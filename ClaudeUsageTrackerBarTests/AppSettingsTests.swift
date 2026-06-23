@@ -3,7 +3,7 @@ import XCTest
 
 final class AppSettingsTests: XCTestCase {
 
-    private let keys = ["showInMenuBar", "menuBarDisplay", "launchAtLogin", "debugMode", "animateUpdates", "costMode"]
+    private let keys = ["showInMenuBar", "menuBarDisplay", "launchAtLogin", "debugMode", "animateUpdates", "costMode", "showToday", "showLast30Days", "showAllTime"]
 
     override func setUp() {
         super.setUp()
@@ -37,5 +37,41 @@ final class AppSettingsTests: XCTestCase {
         settings.setMenuBarDisplay(.tokens)
         let settings2 = AppSettings()
         XCTAssertEqual(settings2.menuBarDisplay, .tokens)
+    }
+
+    func test_showToday_defaultsTrue() {
+        let settings = AppSettings()
+        XCTAssertTrue(settings.showToday)
+    }
+
+    func test_showToday_persists() {
+        let settings = AppSettings()
+        settings.setShowToday(false)
+        let settings2 = AppSettings()
+        XCTAssertFalse(settings2.showToday)
+    }
+
+    func test_showLast30Days_defaultsFalse() {
+        let settings = AppSettings()
+        XCTAssertFalse(settings.showLast30Days)
+    }
+
+    func test_showLast30Days_persists() {
+        let settings = AppSettings()
+        settings.setShowLast30Days(false)
+        let settings2 = AppSettings()
+        XCTAssertFalse(settings2.showLast30Days)
+    }
+
+    func test_showAllTime_defaultsFalse() {
+        let settings = AppSettings()
+        XCTAssertFalse(settings.showAllTime)
+    }
+
+    func test_showAllTime_persists() {
+        let settings = AppSettings()
+        settings.setShowAllTime(false)
+        let settings2 = AppSettings()
+        XCTAssertFalse(settings2.showAllTime)
     }
 }

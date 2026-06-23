@@ -25,7 +25,9 @@ final class AppSettings: ObservableObject {
     @Published var menuBarColorHex: String
     @Published private(set) var costMode: CostMode
     @Published private(set) var showQuota: Bool
-    @Published var scrollablePopup: Bool
+    @Published private(set) var showToday: Bool
+    @Published private(set) var showLast30Days: Bool
+    @Published private(set) var showAllTime: Bool
 
     init() {
         let stored = UserDefaults.standard.object(forKey: "launchAtLogin") as? Bool
@@ -40,7 +42,9 @@ final class AppSettings: ObservableObject {
         let rawCostMode = UserDefaults.standard.string(forKey: "costMode") ?? ""
         costMode = CostMode(rawValue: rawCostMode) ?? .auto
         showQuota = UserDefaults.standard.object(forKey: "showQuota") as? Bool ?? true
-        scrollablePopup = UserDefaults.standard.bool(forKey: "scrollablePopup")
+        showToday = UserDefaults.standard.object(forKey: "showToday") as? Bool ?? true
+        showLast30Days = UserDefaults.standard.object(forKey: "showLast30Days") as? Bool ?? false
+        showAllTime = UserDefaults.standard.object(forKey: "showAllTime") as? Bool ?? false
         if stored == nil {
             applyLaunchAtLogin(true)
         }
@@ -90,9 +94,19 @@ final class AppSettings: ObservableObject {
         UserDefaults.standard.set(enabled, forKey: "showQuota")
     }
 
-    func setScrollablePopup(_ enabled: Bool) {
-        scrollablePopup = enabled
-        UserDefaults.standard.set(enabled, forKey: "scrollablePopup")
+    func setShowToday(_ enabled: Bool) {
+        showToday = enabled
+        UserDefaults.standard.set(enabled, forKey: "showToday")
+    }
+
+    func setShowLast30Days(_ enabled: Bool) {
+        showLast30Days = enabled
+        UserDefaults.standard.set(enabled, forKey: "showLast30Days")
+    }
+
+    func setShowAllTime(_ enabled: Bool) {
+        showAllTime = enabled
+        UserDefaults.standard.set(enabled, forKey: "showAllTime")
     }
 
     private func applyLaunchAtLogin(_ enabled: Bool) {
