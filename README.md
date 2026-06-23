@@ -9,12 +9,13 @@ A lightweight native macOS menu bar app that shows your [Claude Code](https://cl
 ## Features
 
 - **Real-time updates** — watches `~/.claude/projects/**/*.jsonl` via FSEvents; animates on change
-- **Three time windows** — Today, Last 30 Days, All Time
+- **Three time windows** — Today, Last 30 Days, All Time (each individually toggleable in Settings)
 - **Full token breakdown** — Input, Output, Cache Write, Cache Read, Total
 - **Models used** — displayed as compact tags per section
 - **Cost estimate** — calculated via [LiteLLM](https://github.com/BerriAI/litellm) pricing data (fetched on launch, cached 24h) with fallback to bundled rates
 - **Colored menu bar icon** — orange spark + gold coin stack, visible on any menu bar
-- **Quota tracking** — 5-hour and weekly utilization bars fetched from Anthropic's usage endpoint, color-coded green / yellow / red with reset countdowns
+- **Quota tracking** — 5-hour and weekly utilization bars fetched from Anthropic's usage endpoint, color-coded green / yellow / red with reset countdowns; auto-retries on wake from sleep
+- **Quick access** — gear and quit buttons always visible in popup header
 - **Launch at login** — enabled by default via SMAppService
 - **Debug mode** — shows exact token counts with thousands separators instead of K/M
 - **Animate updates** — numbers transition smoothly when new tokens arrive
@@ -22,9 +23,17 @@ A lightweight native macOS menu bar app that shows your [Claude Code](https://cl
 ## Screenshots
 
 <p align="center">
-  <img src="docs/screenshots/popup_new.png" width="280" alt="Usage popup"/>
+  <img src="docs/screenshots/status_bar.png" height="36" alt="Menu bar"/>
+</p>
+
+<p align="center">
+  <img src="docs/screenshots/Screenshot%202026-06-23%20at%2012.12.32.png" width="260" alt="Usage popup"/>
   &nbsp;&nbsp;
-  <img src="docs/screenshots/settings_new.png" width="280" alt="Settings"/>
+  <img src="docs/screenshots/Screenshot%202026-06-23%20at%2012.12.14.png" width="260" alt="Settings"/>
+</p>
+
+<p align="center">
+  <img src="docs/screenshots/Screenshot%202026-06-23%20at%2012.11.08.png" width="260" alt="All sections expanded"/>
 </p>
 
 ## Install
