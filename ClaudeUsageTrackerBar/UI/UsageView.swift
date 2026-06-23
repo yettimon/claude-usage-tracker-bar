@@ -391,7 +391,6 @@ struct StatusSectionView: View {
                 Divider().opacity(0.25)
             }
             .onReceive(timer) { now = $0 }
-            .onAppear { now = Date() }
         }
     }
 
