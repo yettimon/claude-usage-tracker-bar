@@ -72,9 +72,14 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private func setupPopover() {
         let popover = NSPopover()
         popover.behavior = .transient
-        popover.contentViewController = NSHostingController(
+        let hosting = NSHostingController(
             rootView: UsageView(store: store, quotaStore: quotaStore, statusStore: statusStore, accountStore: accountStore, settings: settings)
         )
+        // Track SwiftUI's ideal size so the popover resizes as async sections
+        // (status, quota) load in — without this the frame is fixed at show-time
+        // and late-arriving content overflows, clipping the top and bottom.
+        hosting.sizingOptions = [.preferredContentSize]
+        popover.contentViewController = hosting
         self.popover = popover
     }
 
