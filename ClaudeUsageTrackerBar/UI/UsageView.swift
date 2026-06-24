@@ -13,10 +13,7 @@ struct UsageView: View {
             if showSettings {
                 SettingsView(settings: settings, onBack: { showSettings = false })
             } else {
-                ScrollView(.vertical, showsIndicators: false) {
-                    mainView
-                }
-                .frame(maxHeight: 640)
+                mainView
             }
         }
         .frame(width: 280)
