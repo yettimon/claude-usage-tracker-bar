@@ -3,7 +3,7 @@ import XCTest
 
 final class AppSettingsTests: XCTestCase {
 
-    private let keys = ["showInMenuBar", "menuBarDisplay", "launchAtLogin", "debugMode", "animateUpdates", "costMode", "showToday", "showLast30Days", "showAllTime", "showHistory", "historyMetric"]
+    private let keys = ["showInMenuBar", "menuBarDisplay", "launchAtLogin", "debugMode", "animateUpdates", "costMode", "showToday", "showLast30Days", "showAllTime", "showHistory", "historyMetric", "quotaAlertsEnabled"]
 
     override func setUp() {
         super.setUp()
@@ -93,5 +93,15 @@ final class AppSettingsTests: XCTestCase {
         let settings = AppSettings()
         settings.setHistoryMetric(.tokens)
         XCTAssertEqual(AppSettings().historyMetric, .tokens)
+    }
+
+    func test_quotaAlertsEnabled_defaultsFalse() {
+        XCTAssertFalse(AppSettings().quotaAlertsEnabled)
+    }
+
+    func test_quotaAlertsEnabled_persists() {
+        let settings = AppSettings()
+        settings.setQuotaAlertsEnabled(true)
+        XCTAssertTrue(AppSettings().quotaAlertsEnabled)
     }
 }
