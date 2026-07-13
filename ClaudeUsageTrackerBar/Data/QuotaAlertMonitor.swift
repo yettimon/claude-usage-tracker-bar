@@ -84,6 +84,9 @@ final class QuotaAlertMonitor {
         quotaStore.$status
             .sink { [weak self] _ in self?.evaluate() }
             .store(in: &cancellables)
+        // 5-min interval is deliberately aligned with QuotaStore's rate-limit
+        // backoff and stale threshold — do not tune it below the backoff, or
+        // ticks will land during backoff windows and no-op (API thrash for no gain).
         let t = Timer(timeInterval: pollInterval, repeats: true) { [weak self] _ in
             Task { @MainActor [weak self] in await self?.quotaStore.fetch() }
         }
