@@ -281,12 +281,25 @@ struct QuotaSectionView: View {
         // Render nothing during initial load to avoid flash of empty section.
         if quotaStore.status != nil || quotaStore.error != nil || quotaStore.isFetching {
             VStack(alignment: .leading, spacing: 0) {
-                Text("QUOTA")
-                    .font(.system(size: 10))
-                    .foregroundStyle(.secondary.opacity(0.7))
-                    .padding(.horizontal, 14)
-                    .padding(.top, 10)
-                    .padding(.bottom, 6)
+                HStack {
+                    Text("QUOTA")
+                        .font(.system(size: 10))
+                        .foregroundStyle(.secondary.opacity(0.7))
+                    Spacer()
+                    Button {
+                        Task { await quotaStore.fetch() }
+                    } label: {
+                        Image(systemName: "arrow.clockwise")
+                            .font(.system(size: 11))
+                            .foregroundStyle(.secondary)
+                    }
+                    .buttonStyle(.plain)
+                    .disabled(quotaStore.isFetching)
+                    .help("Refresh quota")
+                }
+                .padding(.horizontal, 14)
+                .padding(.top, 10)
+                .padding(.bottom, 6)
 
                 contentView
                     .padding(.bottom, 8)
