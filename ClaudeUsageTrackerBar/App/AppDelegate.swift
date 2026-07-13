@@ -13,6 +13,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private lazy var statusStore = ClaudeStatusStore(fetchOnInit: false)
     private lazy var accountStore = AccountStore()
     private let navigator = PopoverNavigator()
+    private lazy var alertMonitor = QuotaAlertMonitor(quotaStore: quotaStore, settings: settings)
     private var cancellables = Set<AnyCancellable>()
 
     func applicationDidFinishLaunching(_ notification: Notification) {
@@ -20,6 +21,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         setupStatusItem()
         setupPopover()
         setupMenuBarObservers()
+        alertMonitor.updateEnabled()
         setupWakeObserver()
         showOnboardingIfNeeded()
     }
@@ -125,6 +127,14 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             .receive(on: DispatchQueue.main)
             .sink { [weak self] enabled in
                 self?.quotaStore.setEnabled(enabled)
+            }
+            .store(in: &cancellables)
+
+        Publishers.CombineLatest(settings.$quotaAlertsEnabled, settings.$showQuota)
+            .dropFirst()
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] _, _ in
+                self?.alertMonitor.updateEnabled()
             }
             .store(in: &cancellables)
     }

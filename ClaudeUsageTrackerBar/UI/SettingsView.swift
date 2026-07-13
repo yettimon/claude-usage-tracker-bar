@@ -242,6 +242,31 @@ struct SettingsView: View {
                 .padding(.horizontal, 14)
                 .padding(.bottom, 10)
 
+            if settings.showQuota {
+                Divider().opacity(0.25)
+
+                HStack {
+                    Text("Quota alerts")
+                        .font(.system(size: 12))
+                    Spacer()
+                    Toggle("", isOn: Binding(
+                        get: { settings.quotaAlertsEnabled },
+                        set: { settings.setQuotaAlertsEnabled($0) }
+                    ))
+                    .labelsHidden()
+                    .toggleStyle(.switch)
+                }
+                .padding(.horizontal, 14)
+                .padding(.vertical, 10)
+
+                Text("Notify at 50%, 90% and when the 5-hour limit resets")
+                    .font(.system(size: 10))
+                    .foregroundStyle(.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
+                    .padding(.horizontal, 14)
+                    .padding(.bottom, 10)
+            }
+
             Divider().opacity(0.25)
 
             HStack {
