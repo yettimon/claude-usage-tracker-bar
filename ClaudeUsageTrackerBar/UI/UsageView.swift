@@ -1,4 +1,5 @@
 import SwiftUI
+import AppKit
 
 struct UsageView: View {
     @ObservedObject var store: UsageStore
@@ -9,14 +10,19 @@ struct UsageView: View {
     @State private var showSettings = false
 
     var body: some View {
-        Group {
-            if showSettings {
-                SettingsView(settings: settings, onBack: { showSettings = false })
-            } else {
-                mainView
+        // Cap height at the usable screen so tall content (all sections enabled)
+        // scrolls instead of overflowing the popover and clipping the header —
+        // which would otherwise hide the gear/settings button off-screen.
+        HeightClampedScroll {
+            Group {
+                if showSettings {
+                    SettingsView(settings: settings, onBack: { showSettings = false })
+                } else {
+                    mainView
+                }
             }
+            .frame(width: 280)
         }
-        .frame(width: 280)
     }
 
     private var mainView: some View {
@@ -403,5 +409,42 @@ struct StatusSectionView: View {
         }
         let hours = Int(seconds / 3600)
         return hours == 1 ? "updated 1 hour ago" : "updated \(hours) hours ago"
+    }
+}
+
+// MARK: - Height-clamped scroll container
+
+/// Sizes to its content's intrinsic height (so the popover hugs short content and
+/// resizes as async sections load), but caps at the usable screen height and scrolls
+/// past that. Without the cap, content taller than the screen overflows the popover
+/// and clips the top header — hiding the gear/quit buttons off-screen.
+private struct HeightClampedScroll<Content: View>: View {
+    @ViewBuilder let content: Content
+    @State private var contentHeight: CGFloat = 0
+
+    private var maxHeight: CGFloat {
+        // visibleFrame excludes the menu bar and Dock; leave a margin so the
+        // popover never sits flush against the screen edges.
+        (NSScreen.main?.visibleFrame.height ?? 900) - 32
+    }
+
+    var body: some View {
+        ScrollView {
+            content
+                .background(
+                    GeometryReader { geo in
+                        Color.clear.preference(key: ContentHeightKey.self, value: geo.size.height)
+                    }
+                )
+        }
+        .onPreferenceChange(ContentHeightKey.self) { contentHeight = $0 }
+        .frame(height: contentHeight > 0 ? min(contentHeight, maxHeight) : nil)
+    }
+}
+
+private struct ContentHeightKey: PreferenceKey {
+    static var defaultValue: CGFloat = 0
+    static func reduce(value: inout CGFloat, nextValue: () -> CGFloat) {
+        value = nextValue()
     }
 }
