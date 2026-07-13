@@ -1,6 +1,9 @@
 import SwiftUI
 
 private let changelog: [(version: String, date: String, items: [String])] = [
+    ("0.1.21", "Jul 2026", [
+        "Popup scrolls when taller than the screen — settings gear and header no longer clipped off-screen with all sections enabled"
+    ]),
     ("0.1.20", "Jun 2026", [
         "Usage history heatmap — GitHub-style daily activity grid for the past 5 months, switchable metric (cost, tokens, requests)",
         "Claude service status indicator — live operational status from status.claude.com",
