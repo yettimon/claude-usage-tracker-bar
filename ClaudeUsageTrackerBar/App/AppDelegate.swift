@@ -12,6 +12,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private lazy var quotaStore = QuotaStore()
     private lazy var statusStore = ClaudeStatusStore(fetchOnInit: false)
     private lazy var accountStore = AccountStore()
+    private let navigator = PopoverNavigator()
     private var cancellables = Set<AnyCancellable>()
 
     func applicationDidFinishLaunching(_ notification: Notification) {
@@ -73,7 +74,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         let popover = NSPopover()
         popover.behavior = .transient
         let hosting = NSHostingController(
-            rootView: UsageView(store: store, quotaStore: quotaStore, statusStore: statusStore, accountStore: accountStore, settings: settings)
+            rootView: UsageView(store: store, quotaStore: quotaStore, statusStore: statusStore, accountStore: accountStore, settings: settings, navigator: navigator)
         )
         // Track SwiftUI's ideal size so the popover resizes as async sections
         // (status, quota) load in — without this the frame is fixed at show-time

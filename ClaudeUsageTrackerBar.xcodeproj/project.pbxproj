@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		009D2A625C6D0D09562D9FD7 /* PopoverNavigator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4CDFBBB2622B941F92685C65 /* PopoverNavigator.swift */; };
 		04ACE397CCCE9AA4EC73DE4D /* OnboardingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE348646F2C4EC72CE595DAD /* OnboardingView.swift */; };
 		0DDFE3C040EA9FD4A6F46D20 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 067F913BF5E4811D40B7102A /* Assets.xcassets */; };
 		0F6349BCD14BA58B946D6590 /* UsageSummary.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9CF8C293FCCAD0CE2A0A2DC9 /* UsageSummary.swift */; };
@@ -86,6 +87,7 @@
 		4249760D989079C06472A761 /* AccountIdentity.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AccountIdentity.swift; sourceTree = "<group>"; };
 		47FB8D0291560756865230AD /* ClaudeUsageTrackerBarApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClaudeUsageTrackerBarApp.swift; sourceTree = "<group>"; };
 		48C8AB899E20D19B55CBBBE0 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
+		4CDFBBB2622B941F92685C65 /* PopoverNavigator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PopoverNavigator.swift; sourceTree = "<group>"; };
 		52AECCB5A723A06F1708C9CA /* AnthropicQuotaServiceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnthropicQuotaServiceTests.swift; sourceTree = "<group>"; };
 		61B1E75EF849C307F63A6954 /* JournalEntry.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JournalEntry.swift; sourceTree = "<group>"; };
 		61CF9E9121D300E8B5F7CE63 /* ClaudeStatusStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClaudeStatusStore.swift; sourceTree = "<group>"; };
@@ -202,6 +204,7 @@
 			children = (
 				48C8AB899E20D19B55CBBBE0 /* AppDelegate.swift */,
 				47FB8D0291560756865230AD /* ClaudeUsageTrackerBarApp.swift */,
+				4CDFBBB2622B941F92685C65 /* PopoverNavigator.swift */,
 			);
 			path = App;
 			sourceTree = "<group>";
@@ -401,6 +404,7 @@
 				26D4BE112837BB33D4984CE8 /* LiteLLMPricing.swift in Sources */,
 				1EDA4F7143FACD442E09F464 /* ModelPricing.swift in Sources */,
 				04ACE397CCCE9AA4EC73DE4D /* OnboardingView.swift in Sources */,
+				009D2A625C6D0D09562D9FD7 /* PopoverNavigator.swift in Sources */,
 				2AFC140975F048EBF4A4B634 /* QuotaAlerting.swift in Sources */,
 				D06524A7A2699B9FA452EC8D /* QuotaStatus.swift in Sources */,
 				27292CD02492FE225909423C /* QuotaStore.swift in Sources */,

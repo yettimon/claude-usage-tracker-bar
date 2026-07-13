@@ -7,7 +7,7 @@ struct UsageView: View {
     @ObservedObject var statusStore: ClaudeStatusStore
     @ObservedObject var accountStore: AccountStore
     @ObservedObject var settings: AppSettings
-    @State private var showSettings = false
+    @ObservedObject var navigator: PopoverNavigator
 
     var body: some View {
         // Cap height at the usable screen so tall content (all sections enabled)
@@ -15,8 +15,8 @@ struct UsageView: View {
         // which would otherwise hide the gear/settings button off-screen.
         HeightClampedScroll {
             Group {
-                if showSettings {
-                    SettingsView(settings: settings, onBack: { showSettings = false })
+                if navigator.showSettings {
+                    SettingsView(settings: settings, onBack: { navigator.showSettings = false })
                 } else {
                     mainView
                 }
@@ -29,7 +29,7 @@ struct UsageView: View {
         VStack(alignment: .leading, spacing: 0) {
             AccountRowView(
                 accountStore: accountStore,
-                onSettings: { showSettings = true },
+                onSettings: { navigator.showSettings = true },
                 onQuit: { NSApp.terminate(nil) }
             )
             StatusSectionView(statusStore: statusStore)
