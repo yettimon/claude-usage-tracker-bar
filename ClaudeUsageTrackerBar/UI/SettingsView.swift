@@ -1,6 +1,11 @@
 import SwiftUI
 
 private let changelog: [(version: String, date: String, items: [String])] = [
+    ("0.2.0", "Jul 2026", [
+        "Right-click the menu-bar icon for Open, Settings and Quit",
+        "Quota alerts — get notified at 50%, 90% and when your 5-hour limit resets (toggle in Settings)",
+        "Manual refresh button in the quota section"
+    ]),
     ("0.1.21", "Jul 2026", [
         "Popup scrolls when taller than the screen — settings gear and header no longer clipped off-screen with all sections enabled"
     ]),
