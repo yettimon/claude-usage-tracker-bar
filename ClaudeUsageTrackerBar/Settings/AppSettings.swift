@@ -30,6 +30,7 @@ final class AppSettings: ObservableObject {
     @Published private(set) var showAllTime: Bool
     @Published private(set) var showHistory: Bool
     @Published private(set) var historyMetric: HistoryMetric
+    @Published private(set) var quotaAlertsEnabled: Bool
 
     init() {
         let stored = UserDefaults.standard.object(forKey: "launchAtLogin") as? Bool
@@ -50,6 +51,7 @@ final class AppSettings: ObservableObject {
         showHistory = UserDefaults.standard.object(forKey: "showHistory") as? Bool ?? true
         let rawHistoryMetric = UserDefaults.standard.string(forKey: "historyMetric") ?? ""
         historyMetric = HistoryMetric(rawValue: rawHistoryMetric) ?? .cost
+        quotaAlertsEnabled = UserDefaults.standard.bool(forKey: "quotaAlertsEnabled")
         if stored == nil {
             applyLaunchAtLogin(true)
         }
@@ -97,6 +99,11 @@ final class AppSettings: ObservableObject {
     func setShowQuota(_ enabled: Bool) {
         showQuota = enabled
         UserDefaults.standard.set(enabled, forKey: "showQuota")
+    }
+
+    func setQuotaAlertsEnabled(_ enabled: Bool) {
+        quotaAlertsEnabled = enabled
+        UserDefaults.standard.set(enabled, forKey: "quotaAlertsEnabled")
     }
 
     func setShowToday(_ enabled: Bool) {

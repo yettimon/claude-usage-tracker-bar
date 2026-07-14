@@ -12,6 +12,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private lazy var quotaStore = QuotaStore()
     private lazy var statusStore = ClaudeStatusStore(fetchOnInit: false)
     private lazy var accountStore = AccountStore()
+    private let navigator = PopoverNavigator()
+    private lazy var alertMonitor = QuotaAlertMonitor(quotaStore: quotaStore, settings: settings)
     private var cancellables = Set<AnyCancellable>()
 
     func applicationDidFinishLaunching(_ notification: Notification) {
@@ -19,6 +21,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         setupStatusItem()
         setupPopover()
         setupMenuBarObservers()
+        alertMonitor.updateEnabled()
         setupWakeObserver()
         showOnboardingIfNeeded()
     }
@@ -65,15 +68,16 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         } else {
             button.title = "₵"
         }
-        button.action = #selector(togglePopover)
+        button.action = #selector(statusItemClicked)
         button.target = self
+        button.sendAction(on: [.leftMouseUp, .rightMouseUp])
     }
 
     private func setupPopover() {
         let popover = NSPopover()
         popover.behavior = .transient
         let hosting = NSHostingController(
-            rootView: UsageView(store: store, quotaStore: quotaStore, statusStore: statusStore, accountStore: accountStore, settings: settings)
+            rootView: UsageView(store: store, quotaStore: quotaStore, statusStore: statusStore, accountStore: accountStore, settings: settings, navigator: navigator)
         )
         // Track SwiftUI's ideal size so the popover resizes as async sections
         // (status, quota) load in — without this the frame is fixed at show-time
@@ -125,6 +129,14 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
                 self?.quotaStore.setEnabled(enabled)
             }
             .store(in: &cancellables)
+
+        Publishers.CombineLatest(settings.$quotaAlertsEnabled, settings.$showQuota)
+            .dropFirst()
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] _, _ in
+                self?.alertMonitor.updateEnabled()
+            }
+            .store(in: &cancellables)
     }
 
     private func updateMenuBarTitle() {
@@ -164,17 +176,61 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         }
     }
 
+    @objc private func statusItemClicked() {
+        let event = NSApp.currentEvent
+        let isRightClick = event?.type == .rightMouseUp
+            || (event?.modifierFlags.contains(.control) ?? false)
+        if isRightClick {
+            showContextMenu()
+        } else {
+            togglePopover()
+        }
+    }
+
+    private func showContextMenu() {
+        guard let statusItem, let button = statusItem.button else { return }
+        let menu = NSMenu()
+        menu.addItem(withTitle: "Open", action: #selector(menuOpen), keyEquivalent: "")
+        menu.addItem(withTitle: "Settings…", action: #selector(menuSettings), keyEquivalent: "")
+        menu.addItem(.separator())
+        menu.addItem(withTitle: "Quit", action: #selector(menuQuit), keyEquivalent: "q")
+        menu.items.forEach { $0.target = self }
+        // One-shot menu: attach, click to open synchronously, then detach so a
+        // normal left-click still toggles the popover instead of the menu.
+        statusItem.menu = menu
+        button.performClick(nil)
+        statusItem.menu = nil
+    }
+
+    @objc private func menuOpen() {
+        navigator.showSettings = false
+        showPopover()
+    }
+
+    @objc private func menuSettings() {
+        navigator.showSettings = true
+        showPopover()
+    }
+
+    @objc private func menuQuit() {
+        NSApp.terminate(nil)
+    }
+
     @objc private func togglePopover() {
-        guard let button = statusItem?.button else { return }
         if let popover, popover.isShown {
             popover.performClose(nil)
         } else {
-            store.refresh()
-            accountStore.refresh()
-            if settings.showQuota { quotaStore.refreshIfStale() }
-            statusStore.refreshIfStale()
-            popover?.show(relativeTo: button.bounds, of: button, preferredEdge: .minY)
-            NSApp.activate(ignoringOtherApps: true)
+            showPopover()
         }
+    }
+
+    private func showPopover() {
+        guard let button = statusItem?.button else { return }
+        store.refresh()
+        accountStore.refresh()
+        if settings.showQuota { quotaStore.refreshIfStale() }
+        statusStore.refreshIfStale()
+        popover?.show(relativeTo: button.bounds, of: button, preferredEdge: .minY)
+        NSApp.activate(ignoringOtherApps: true)
     }
 }
