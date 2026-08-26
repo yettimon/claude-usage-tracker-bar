@@ -20,6 +20,7 @@
 		2AFC140975F048EBF4A4B634 /* QuotaAlerting.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7E5E73A3008540130684DA5A /* QuotaAlerting.swift */; };
 		2B2381563E12BA09AB7E3CA4 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 48C8AB899E20D19B55CBBBE0 /* AppDelegate.swift */; };
 		30E5D7E09C0FF4307F08977D /* AccountStoreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1E3ADA1C09E653241A931D53 /* AccountStoreTests.swift */; };
+		316970700A375737F72EFEDA /* ArchivedDay.swift in Sources */ = {isa = PBXBuildFile; fileRef = E598EC3258219FD4BB93FBC0 /* ArchivedDay.swift */; };
 		37A6BFA7FA54FF4D1A3E9E0C /* ClaudeUsageTrackerBarTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 30702EA54DFCC72A81C88AC8 /* ClaudeUsageTrackerBarTests.swift */; };
 		39B532EFBE3AA394BE0409B4 /* libsqlite3.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = 7FFBE1289E459E913F0163FF /* libsqlite3.tbd */; };
 		4A34B46AC9C8BA3468BC4D7C /* UsageSchema.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3DFD9A3129A5070661723F0C /* UsageSchema.swift */; };
@@ -33,8 +34,10 @@
 		6446B0536EED7BB51E87A402 /* CoreServices.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 2474D14CA6FE96B0DB1D6DC8 /* CoreServices.framework */; };
 		6E57D9610A1566D68CB0F069 /* QuotaAlertingTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = FC8D158594FB3892A5DB88C3 /* QuotaAlertingTests.swift */; };
 		72D48630BE9F5BB2D29E89F5 /* DayKeyTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDEAAABD3327DFE5DB3935E3 /* DayKeyTests.swift */; };
+		74C3D8A3852643E928E19BC2 /* UsageArchiveTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4E9ED1DB92AA15892884D532 /* UsageArchiveTests.swift */; };
 		76E08968BEE9C38EBCDE98B3 /* ClaudeStatusRelativeTimeTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 20D00783229539612C0DDF08 /* ClaudeStatusRelativeTimeTests.swift */; };
 		8305C51BFE8E888B1DD80373 /* JournalParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = 72D1B45335C4FE8064E53483 /* JournalParser.swift */; };
+		869573DFC421AB4509268B71 /* UsageArchive.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6F3F5018C95C9F9ABAE3B6F9 /* UsageArchive.swift */; };
 		9774DD397FE98776D0233CBE /* HistorySectionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 88019F891631F74D678230DC /* HistorySectionView.swift */; };
 		A028425B701B3DF968B633E2 /* UsageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 19C9E4AB4B542B52B6A02555 /* UsageView.swift */; };
 		A3808FE789CDF4DEB5411C17 /* SquareColorWell.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE945020C5B363BF87C715D8 /* SquareColorWell.swift */; };
@@ -99,11 +102,13 @@
 		47FB8D0291560756865230AD /* ClaudeUsageTrackerBarApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClaudeUsageTrackerBarApp.swift; sourceTree = "<group>"; };
 		48C8AB899E20D19B55CBBBE0 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		4CDFBBB2622B941F92685C65 /* PopoverNavigator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PopoverNavigator.swift; sourceTree = "<group>"; };
+		4E9ED1DB92AA15892884D532 /* UsageArchiveTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UsageArchiveTests.swift; sourceTree = "<group>"; };
 		52AECCB5A723A06F1708C9CA /* AnthropicQuotaServiceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnthropicQuotaServiceTests.swift; sourceTree = "<group>"; };
 		61B1E75EF849C307F63A6954 /* JournalEntry.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JournalEntry.swift; sourceTree = "<group>"; };
 		61CF9E9121D300E8B5F7CE63 /* ClaudeStatusStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClaudeStatusStore.swift; sourceTree = "<group>"; };
 		693185FCE4137D42D6685627 /* QuotaAlertMonitorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuotaAlertMonitorTests.swift; sourceTree = "<group>"; };
 		69A10BA77570DA7FABB2B7FB /* ClaudeStatusServiceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClaudeStatusServiceTests.swift; sourceTree = "<group>"; };
+		6F3F5018C95C9F9ABAE3B6F9 /* UsageArchive.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UsageArchive.swift; sourceTree = "<group>"; };
 		718F19AFF5BE7E43AC5366B9 /* QuotaStatusTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuotaStatusTests.swift; sourceTree = "<group>"; };
 		72D1B45335C4FE8064E53483 /* JournalParser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JournalParser.swift; sourceTree = "<group>"; };
 		764F822D743B52F14D8695A7 /* UsageDatabaseTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UsageDatabaseTests.swift; sourceTree = "<group>"; };
@@ -135,6 +140,7 @@
 		DC56A01D88AFD00BA5B57568 /* AppSettings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppSettings.swift; sourceTree = "<group>"; };
 		DDEAAABD3327DFE5DB3935E3 /* DayKeyTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DayKeyTests.swift; sourceTree = "<group>"; };
 		DEFB4AA08482CE295D97D5FF /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
+		E598EC3258219FD4BB93FBC0 /* ArchivedDay.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArchivedDay.swift; sourceTree = "<group>"; };
 		E92E3E01BEA6966EA8AD1649 /* QuotaStatus.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuotaStatus.swift; sourceTree = "<group>"; };
 		FC8D158594FB3892A5DB88C3 /* QuotaAlertingTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuotaAlertingTests.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -166,6 +172,7 @@
 				7E5E73A3008540130684DA5A /* QuotaAlerting.swift */,
 				CAC173539D5F3B2799AF66E0 /* QuotaAlertMonitor.swift */,
 				A7AD83F90E15650D8692126F /* UsageAggregator.swift */,
+				6F3F5018C95C9F9ABAE3B6F9 /* UsageArchive.swift */,
 				23F5A49D02CF0F7122596B0B /* UsageDatabase.swift */,
 				3DFD9A3129A5070661723F0C /* UsageSchema.swift */,
 			);
@@ -216,6 +223,7 @@
 				718F19AFF5BE7E43AC5366B9 /* QuotaStatusTests.swift */,
 				A7BC3E22213C6FB7BD15BCA8 /* QuotaStoreTests.swift */,
 				96F5F145D51C897B34E62C5D /* UsageAggregatorTests.swift */,
+				4E9ED1DB92AA15892884D532 /* UsageArchiveTests.swift */,
 				764F822D743B52F14D8695A7 /* UsageDatabaseTests.swift */,
 				AE4415E0BD756300CBE387AA /* Fixtures */,
 			);
@@ -244,6 +252,7 @@
 			isa = PBXGroup;
 			children = (
 				4249760D989079C06472A761 /* AccountIdentity.swift */,
+				E598EC3258219FD4BB93FBC0 /* ArchivedDay.swift */,
 				24318013D974E2E947EDF9D7 /* ClaudeServiceStatus.swift */,
 				15816BED7CC485278B671434 /* DailyUsage.swift */,
 				13CAD9EF6E926623887E733A /* DayKey.swift */,
@@ -416,6 +425,7 @@
 				A4A8BC5E15A5734327EA325E /* AnthropicQuotaService.swift in Sources */,
 				2B2381563E12BA09AB7E3CA4 /* AppDelegate.swift in Sources */,
 				26D5AFB2E275008F201E3439 /* AppSettings.swift in Sources */,
+				316970700A375737F72EFEDA /* ArchivedDay.swift in Sources */,
 				F3D876B0EED73B47697B5D08 /* ClaudeServiceStatus.swift in Sources */,
 				BFF1BB11D4DF283636E7565F /* ClaudeStatusService.swift in Sources */,
 				E88B523877280FE69033059C /* ClaudeStatusStore.swift in Sources */,
@@ -438,6 +448,7 @@
 				D5E0433C1CD7E091EAB4D06D /* SettingsView.swift in Sources */,
 				A3808FE789CDF4DEB5411C17 /* SquareColorWell.swift in Sources */,
 				F1CE0F664D94841B8FDEA65E /* UsageAggregator.swift in Sources */,
+				869573DFC421AB4509268B71 /* UsageArchive.swift in Sources */,
 				E44C8DDBCB6DE50A019ED78A /* UsageDatabase.swift in Sources */,
 				4A34B46AC9C8BA3468BC4D7C /* UsageSchema.swift in Sources */,
 				5FC8D01118B38C4388A08344 /* UsageStore.swift in Sources */,
@@ -468,6 +479,7 @@
 				4BCE57E6E91A8F8F911D1041 /* QuotaStatusTests.swift in Sources */,
 				AE6826286F3342336E69334F /* QuotaStoreTests.swift in Sources */,
 				FCC389312BEBA2DBBFBB35DE /* UsageAggregatorTests.swift in Sources */,
+				74C3D8A3852643E928E19BC2 /* UsageArchiveTests.swift in Sources */,
 				4F3118362741BB570F3FC738 /* UsageDatabaseTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
