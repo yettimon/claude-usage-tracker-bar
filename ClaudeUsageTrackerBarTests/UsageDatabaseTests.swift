@@ -125,4 +125,38 @@ final class UsageDatabaseTests: XCTestCase {
         }
         XCTAssertEqual(count.first, 1)
     }
+
+    func testQueryThrowsOnStepFailureMidIteration() throws {
+        let database = try UsageDatabase(path: path)
+        try database.withConnection { connection in
+            try connection.run(
+                "INSERT INTO file_cursor (path, size, mtime) VALUES (?, ?, ?)",
+                [.text("/a.jsonl"), .int(1), .double(1)]
+            )
+            try connection.run(
+                "INSERT INTO file_cursor (path, size, mtime) VALUES (?, ?, ?)",
+                [.text("/b.jsonl"), .int(2), .double(1)]
+            )
+        }
+
+        // The first row feeds json() valid input, which evaluates fine and yields
+        // SQLITE_ROW. The second row feeds it malformed JSON, which json()
+        // rejects at evaluation time with a genuine runtime error (not a
+        // prepare-time failure, and not a mock) — exactly the case query() must
+        // surface instead of silently truncating results.
+        XCTAssertThrowsError(
+            try database.withConnection { connection in
+                try connection.query(
+                    """
+                    SELECT json(CASE WHEN size = 1 THEN '"ok"' ELSE 'not json' END)
+                    FROM file_cursor ORDER BY size
+                    """
+                ) { $0.text(0) }
+            }
+        ) { error in
+            guard case UsageDatabase.Failure.step = error else {
+                return XCTFail("expected Failure.step, got \(error)")
+            }
+        }
+    }
 }

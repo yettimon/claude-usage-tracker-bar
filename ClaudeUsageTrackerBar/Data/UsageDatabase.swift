@@ -67,9 +67,7 @@ final class UsageDatabase {
     init(path: String) throws {
         self.path = path
         do {
-            let opened = try Self.open(path: path)
-            handle = opened
-            try Self.migrate(Connection(handle: opened))
+            try openAndMigrate()
         } catch Failure.unsupportedSchema(let version) {
             // Written by a newer build. Deleting it would throw away an archive
             // that build still understands, so refuse instead: the caller falls
@@ -85,14 +83,20 @@ final class UsageDatabase {
             for suffix in ["", "-wal", "-shm"] {
                 try? FileManager.default.removeItem(atPath: path + suffix)
             }
-            let opened = try Self.open(path: path)
-            handle = opened
-            try Self.migrate(Connection(handle: opened))
+            try openAndMigrate()
         }
     }
 
     deinit {
         if let handle { sqlite3_close(handle) }
+    }
+
+    /// Opens `path` and runs the schema migration on it. Shared by the initial
+    /// attempt and the corrupt-database rebuild path so the two never drift.
+    private func openAndMigrate() throws {
+        let opened = try Self.open(path: path)
+        handle = opened
+        try Self.migrate(Connection(handle: opened))
     }
 
     func withConnection<T>(_ body: (Connection) throws -> T) throws -> T {
@@ -149,8 +153,13 @@ final class UsageDatabase {
             let statement = try prepare(sql, binds)
             defer { sqlite3_finalize(statement) }
             var results: [T] = []
-            while sqlite3_step(statement) == SQLITE_ROW {
+            var code = sqlite3_step(statement)
+            while code == SQLITE_ROW {
                 results.append(build(Row(statement: statement)))
+                code = sqlite3_step(statement)
+            }
+            guard code == SQLITE_DONE else {
+                throw Failure.step(String(cString: sqlite3_errmsg(handle)))
             }
             return results
         }
