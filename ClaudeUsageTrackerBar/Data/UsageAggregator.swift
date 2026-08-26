@@ -22,6 +22,35 @@ enum UsageAggregator {
         )
     }
 
+    /// Collapses duplicate assistant turns, keeping the copy with the most tokens.
+    ///
+    /// Claude Code writes an incomplete entry while a response streams and a full
+    /// one when it finishes, and copies whole turns between files on session
+    /// resume and into subagent transcripts. Duplicates therefore span files, so
+    /// this must run across the entire set at once, never per file.
+    /// Entries with no `requestId` are never merged.
+    static func dedupe(_ parsed: [JournalParser.ParsedEntry]) -> [JournalEntry] {
+        var indexByRequestId: [String: Int] = [:]
+        var entries: [JournalEntry] = []
+
+        for item in parsed {
+            guard let requestId = item.requestId else {
+                entries.append(item.entry)
+                continue
+            }
+            if let existing = indexByRequestId[requestId] {
+                if item.entry.totalTokens > entries[existing].totalTokens {
+                    entries[existing] = item.entry
+                }
+                continue
+            }
+            indexByRequestId[requestId] = entries.count
+            entries.append(item.entry)
+        }
+
+        return entries
+    }
+
     private static func summarize(_ entries: [JournalEntry], costMode: CostMode) -> UsageSummary {
         guard !entries.isEmpty else { return .empty }
 
@@ -33,7 +62,7 @@ enum UsageAggregator {
             summary.outputTokens += entry.outputTokens
             summary.cacheWriteTokens += entry.cacheWriteTokens
             summary.cacheReadTokens += entry.cacheReadTokens
-            summary.totalCost += entryCost(entry, mode: costMode)
+            summary.totalCost += cost(of: entry, mode: costMode)
             modelTokens[entry.model, default: 0] += entry.inputTokens + entry.outputTokens
         }
 
@@ -49,7 +78,7 @@ enum UsageAggregator {
         for entry in entries {
             let day = calendar.startOfDay(for: entry.timestamp)
             var bucket = acc[day] ?? (0, 0, 0)
-            bucket.cost += entryCost(entry, mode: costMode)
+            bucket.cost += cost(of: entry, mode: costMode)
             bucket.tokens += entry.totalTokens
             bucket.requests += 1
             acc[day] = bucket
@@ -61,7 +90,7 @@ enum UsageAggregator {
         return result
     }
 
-    private static func entryCost(_ entry: JournalEntry, mode: CostMode) -> Double {
+    static func cost(of entry: JournalEntry, mode: CostMode) -> Double {
         switch mode {
         case .display:
             return entry.costUSD ?? 0
