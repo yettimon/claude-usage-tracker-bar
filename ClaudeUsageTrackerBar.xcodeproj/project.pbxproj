@@ -46,6 +46,7 @@
 		A76BD4005405953FE72350D2 /* QuotaAlertMonitor.swift in Sources */ = {isa = PBXBuildFile; fileRef = CAC173539D5F3B2799AF66E0 /* QuotaAlertMonitor.swift */; };
 		A9E5E04A30FE269B60C109E5 /* AccountIdentityReaderTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA535C368188418C8EDA937D /* AccountIdentityReaderTests.swift */; };
 		AE6826286F3342336E69334F /* QuotaStoreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A7BC3E22213C6FB7BD15BCA8 /* QuotaStoreTests.swift */; };
+		B27167DB801D2425C789BED3 /* UsageRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = 37A943F6ECD6E08236554CEE /* UsageRepository.swift */; };
 		B6017C34CD34472CF2C91D5F /* AccountIdentity.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4249760D989079C06472A761 /* AccountIdentity.swift */; };
 		B82006E63BDA321D9E3DDEF3 /* ClaudeStatusModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3A789CCAD9B923253B425A4F /* ClaudeStatusModelTests.swift */; };
 		BC9A07B512A9EF3411844266 /* DailyUsage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 15816BED7CC485278B671434 /* DailyUsage.swift */; };
@@ -58,6 +59,7 @@
 		D5E0433C1CD7E091EAB4D06D /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1EC4EC4BA75FA697D339087 /* SettingsView.swift */; };
 		D74F396135061FF556FE7769 /* ClaudeStatusServiceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 69A10BA77570DA7FABB2B7FB /* ClaudeStatusServiceTests.swift */; };
 		E05B0120203A8F0C08977456 /* ServiceManagement.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 03A119C7D9E8051C55C7BCE6 /* ServiceManagement.framework */; };
+		E400A48EEF467346853EE200 /* UsageRepositoryTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6F579CE6734B7A3A8982A669 /* UsageRepositoryTests.swift */; };
 		E44C8DDBCB6DE50A019ED78A /* UsageDatabase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 23F5A49D02CF0F7122596B0B /* UsageDatabase.swift */; };
 		E88B523877280FE69033059C /* ClaudeStatusStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 61CF9E9121D300E8B5F7CE63 /* ClaudeStatusStore.swift */; };
 		EA234762CD10FD828553C77F /* AccountIdentityReader.swift in Sources */ = {isa = PBXBuildFile; fileRef = 342DAB71F53368342755A352 /* AccountIdentityReader.swift */; };
@@ -94,6 +96,7 @@
 		2C7B8A447FD11A2FC6A1C060 /* ClaudeUsageTrackerBarTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = ClaudeUsageTrackerBarTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		30702EA54DFCC72A81C88AC8 /* ClaudeUsageTrackerBarTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClaudeUsageTrackerBarTests.swift; sourceTree = "<group>"; };
 		342DAB71F53368342755A352 /* AccountIdentityReader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AccountIdentityReader.swift; sourceTree = "<group>"; };
+		37A943F6ECD6E08236554CEE /* UsageRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UsageRepository.swift; sourceTree = "<group>"; };
 		398107A47401E17C5B4D492B /* AnthropicQuotaService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnthropicQuotaService.swift; sourceTree = "<group>"; };
 		3A789CCAD9B923253B425A4F /* ClaudeStatusModelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClaudeStatusModelTests.swift; sourceTree = "<group>"; };
 		3DFD9A3129A5070661723F0C /* UsageSchema.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UsageSchema.swift; sourceTree = "<group>"; };
@@ -109,6 +112,7 @@
 		693185FCE4137D42D6685627 /* QuotaAlertMonitorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuotaAlertMonitorTests.swift; sourceTree = "<group>"; };
 		69A10BA77570DA7FABB2B7FB /* ClaudeStatusServiceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClaudeStatusServiceTests.swift; sourceTree = "<group>"; };
 		6F3F5018C95C9F9ABAE3B6F9 /* UsageArchive.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UsageArchive.swift; sourceTree = "<group>"; };
+		6F579CE6734B7A3A8982A669 /* UsageRepositoryTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UsageRepositoryTests.swift; sourceTree = "<group>"; };
 		718F19AFF5BE7E43AC5366B9 /* QuotaStatusTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuotaStatusTests.swift; sourceTree = "<group>"; };
 		72D1B45335C4FE8064E53483 /* JournalParser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JournalParser.swift; sourceTree = "<group>"; };
 		764F822D743B52F14D8695A7 /* UsageDatabaseTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UsageDatabaseTests.swift; sourceTree = "<group>"; };
@@ -174,6 +178,7 @@
 				A7AD83F90E15650D8692126F /* UsageAggregator.swift */,
 				6F3F5018C95C9F9ABAE3B6F9 /* UsageArchive.swift */,
 				23F5A49D02CF0F7122596B0B /* UsageDatabase.swift */,
+				37A943F6ECD6E08236554CEE /* UsageRepository.swift */,
 				3DFD9A3129A5070661723F0C /* UsageSchema.swift */,
 			);
 			path = Data;
@@ -225,6 +230,7 @@
 				96F5F145D51C897B34E62C5D /* UsageAggregatorTests.swift */,
 				4E9ED1DB92AA15892884D532 /* UsageArchiveTests.swift */,
 				764F822D743B52F14D8695A7 /* UsageDatabaseTests.swift */,
+				6F579CE6734B7A3A8982A669 /* UsageRepositoryTests.swift */,
 				AE4415E0BD756300CBE387AA /* Fixtures */,
 			);
 			path = ClaudeUsageTrackerBarTests;
@@ -450,6 +456,7 @@
 				F1CE0F664D94841B8FDEA65E /* UsageAggregator.swift in Sources */,
 				869573DFC421AB4509268B71 /* UsageArchive.swift in Sources */,
 				E44C8DDBCB6DE50A019ED78A /* UsageDatabase.swift in Sources */,
+				B27167DB801D2425C789BED3 /* UsageRepository.swift in Sources */,
 				4A34B46AC9C8BA3468BC4D7C /* UsageSchema.swift in Sources */,
 				5FC8D01118B38C4388A08344 /* UsageStore.swift in Sources */,
 				0F6349BCD14BA58B946D6590 /* UsageSummary.swift in Sources */,
@@ -481,6 +488,7 @@
 				FCC389312BEBA2DBBFBB35DE /* UsageAggregatorTests.swift in Sources */,
 				74C3D8A3852643E928E19BC2 /* UsageArchiveTests.swift in Sources */,
 				4F3118362741BB570F3FC738 /* UsageDatabaseTests.swift in Sources */,
+				E400A48EEF467346853EE200 /* UsageRepositoryTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
