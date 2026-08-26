@@ -44,6 +44,43 @@ final class UsageArchiveTests: XCTestCase {
         XCTAssertEqual(loaded, [original])
     }
 
+    func testAllReturnsEmptyModelsForAnUndecodableBlobWithoutThrowing() throws {
+        try database.withConnection { connection in
+            try connection.run("""
+                INSERT INTO daily_archive
+                  (day, cost, cost_mode, input_tokens, output_tokens,
+                   cache_write_tokens, cache_read_tokens, request_count, models, sealed_at)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                """, [
+                    .int(20260824),
+                    .double(12.5),
+                    .text(CostMode.calculate.rawValue),
+                    .int(100),
+                    .int(200),
+                    .int(300),
+                    .int(400),
+                    .int(7),
+                    .text("not json"),
+                    .double(1_700_000_000)
+                ])
+        }
+
+        let loaded = try database.withConnection { try UsageArchive.all(from: $0) }
+
+        XCTAssertEqual(loaded.count, 1)
+        let day = try XCTUnwrap(loaded.first)
+        XCTAssertEqual(day.models, [:])
+        XCTAssertEqual(day.day, 20260824)
+        XCTAssertEqual(day.cost, 12.5, accuracy: 0.0001)
+        XCTAssertEqual(day.costMode, .calculate)
+        XCTAssertEqual(day.inputTokens, 100)
+        XCTAssertEqual(day.outputTokens, 200)
+        XCTAssertEqual(day.cacheWriteTokens, 300)
+        XCTAssertEqual(day.cacheReadTokens, 400)
+        XCTAssertEqual(day.requestCount, 7)
+        XCTAssertEqual(day.sealedAt, Date(timeIntervalSince1970: 1_700_000_000))
+    }
+
     func testInsertIsIdempotentForTheSameDay() throws {
         try database.withConnection { connection in
             try UsageArchive.insert(makeDay(20260824), into: connection)

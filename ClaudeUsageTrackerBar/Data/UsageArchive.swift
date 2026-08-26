@@ -1,4 +1,7 @@
 import Foundation
+import os
+
+private let logger = Logger(subsystem: "com.yettimon.claude-usage-tracker-bar", category: "archive")
 
 /// Reads and writes `daily_archive`. The only place that knows the archive's
 /// column layout or its JSON `models` encoding.
@@ -59,7 +62,13 @@ enum UsageArchive {
             let data = text.data(using: .utf8),
             let object = try? JSONSerialization.jsonObject(with: data),
             let models = object as? [String: Int]
-        else { return [:] }
+        else {
+            // A sealed row is never recomputed, so a bad blob here means that day's
+            // "models used" data is gone for good. Log it — this must not be silent —
+            // but don't throw: one bad row must not fail an entire `all(from:)` snapshot.
+            logger.warning("daily_archive models blob failed to decode; treating as empty: \(text, privacy: .public)")
+            return [:]
+        }
         return models
     }
 }
