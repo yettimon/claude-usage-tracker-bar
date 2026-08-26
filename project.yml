@@ -34,6 +34,7 @@ targets:
     dependencies:
       - sdk: CoreServices.framework
       - sdk: ServiceManagement.framework
+      - sdk: libsqlite3.tbd
 
   ClaudeUsageTrackerBarTests:
     type: bundle.unit-test
