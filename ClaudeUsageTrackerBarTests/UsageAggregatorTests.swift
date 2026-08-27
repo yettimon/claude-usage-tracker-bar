@@ -176,6 +176,8 @@ final class UsageAggregatorTests: XCTestCase {
         )
         XCTAssertEqual(result.last30Days.inputTokens, 0)
         XCTAssertEqual(result.allTime.inputTokens, 1000)
+        XCTAssertNotNil(result.daily[DayKey.date(20240101)],
+                        "daily carries archived days whether or not they are in the window")
     }
 
     func testArchivedModelsMergeIntoTheModelList() {

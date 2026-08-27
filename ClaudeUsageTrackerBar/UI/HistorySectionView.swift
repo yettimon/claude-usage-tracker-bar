@@ -66,7 +66,7 @@ struct HistorySectionView: View {
                 }
             }
 
-            // Scrolling month labels + week columns. Content (22 weeks) always
+            // Scrolling month labels + week columns. Content (53 weeks) always
             // exceeds the viewport, so it fills width and scrolls; pinned to the
             // most recent week on open.
             ScrollViewReader { proxy in
