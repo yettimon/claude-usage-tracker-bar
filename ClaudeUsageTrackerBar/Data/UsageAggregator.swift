@@ -9,16 +9,31 @@ enum UsageAggregator {
         let daily: [Date: DailyUsage]
     }
 
-    static func aggregate(entries: [JournalEntry], referenceDate: Date = Date(), costMode: CostMode = .auto) -> Result {
+    /// `archived` holds days already sealed into the archive. Their transcripts
+    /// are gone, so they carry frozen totals rather than entries. Sealed days are
+    /// always earlier than today and never overlap `entries`.
+    static func aggregate(
+        entries: [JournalEntry],
+        archived: [ArchivedDay] = [],
+        referenceDate: Date = Date(),
+        costMode: CostMode = .auto
+    ) -> Result {
         let calendar = Calendar.current
         let startOfToday = calendar.startOfDay(for: referenceDate)
         let thirtyDaysAgo = calendar.date(byAdding: .day, value: -30, to: referenceDate)!
 
+        let archivedInWindow = archived.filter { DayKey.date($0.day, calendar: calendar) >= thirtyDaysAgo }
+
+        var daily = dailyBuckets(entries, costMode: costMode, calendar: calendar)
+        for day in archived {
+            daily[DayKey.date(day.day, calendar: calendar)] = day.dailyUsage
+        }
+
         return Result(
-            today: summarize(entries.filter { $0.timestamp >= startOfToday }, costMode: costMode),
-            last30Days: summarize(entries.filter { $0.timestamp >= thirtyDaysAgo }, costMode: costMode),
-            allTime: summarize(entries, costMode: costMode),
-            daily: dailyBuckets(entries, costMode: costMode, calendar: calendar)
+            today: summarize(entries.filter { $0.timestamp >= startOfToday }, archived: [], costMode: costMode),
+            last30Days: summarize(entries.filter { $0.timestamp >= thirtyDaysAgo }, archived: archivedInWindow, costMode: costMode),
+            allTime: summarize(entries, archived: archived, costMode: costMode),
+            daily: daily
         )
     }
 
@@ -51,8 +66,12 @@ enum UsageAggregator {
         return entries
     }
 
-    private static func summarize(_ entries: [JournalEntry], costMode: CostMode) -> UsageSummary {
-        guard !entries.isEmpty else { return .empty }
+    private static func summarize(
+        _ entries: [JournalEntry],
+        archived: [ArchivedDay],
+        costMode: CostMode
+    ) -> UsageSummary {
+        guard !entries.isEmpty || !archived.isEmpty else { return .empty }
 
         var modelTokens: [String: Int] = [:]
         var summary = UsageSummary()
@@ -66,8 +85,19 @@ enum UsageAggregator {
             modelTokens[entry.model, default: 0] += entry.inputTokens + entry.outputTokens
         }
 
+        for day in archived {
+            summary.inputTokens += day.inputTokens
+            summary.outputTokens += day.outputTokens
+            summary.cacheWriteTokens += day.cacheWriteTokens
+            summary.cacheReadTokens += day.cacheReadTokens
+            summary.totalCost += day.cost   // frozen; never repriced
+            for (model, tokens) in day.models {
+                modelTokens[model, default: 0] += tokens
+            }
+        }
+
         summary.modelsUsed = modelTokens
-            .sorted { $0.value > $1.value }
+            .sorted { $0.value == $1.value ? $0.key < $1.key : $0.value > $1.value }
             .map { $0.key }
 
         return summary

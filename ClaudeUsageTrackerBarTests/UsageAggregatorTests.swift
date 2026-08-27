@@ -127,4 +127,75 @@ final class UsageAggregatorTests: XCTestCase {
         let result = UsageAggregator.aggregate(entries: [], referenceDate: referenceDate)
         XCTAssertTrue(result.daily.isEmpty)
     }
+
+    private func makeArchivedDay(
+        _ key: Int,
+        cost: Double = 5.0,
+        inputTokens: Int = 1000,
+        models: [String: Int] = ["claude-opus-5": 1000]
+    ) -> ArchivedDay {
+        ArchivedDay(
+            day: key,
+            cost: cost,
+            costMode: .calculate,
+            inputTokens: inputTokens,
+            outputTokens: 0,
+            cacheWriteTokens: 0,
+            cacheReadTokens: 0,
+            requestCount: 3,
+            models: models,
+            sealedAt: referenceDate
+        )
+    }
+
+    func testArchivedDaysAppearInTheDailyMap() {
+        let day = makeArchivedDay(20260601)
+        let result = UsageAggregator.aggregate(
+            entries: [], archived: [day], referenceDate: referenceDate, costMode: .calculate
+        )
+        XCTAssertEqual(result.daily[DayKey.date(20260601)]?.cost, 5.0)
+        XCTAssertEqual(result.daily[DayKey.date(20260601)]?.requestCount, 3)
+    }
+
+    func testArchivedDaysCountTowardAllTime() {
+        let result = UsageAggregator.aggregate(
+            entries: [makeEntry(hoursAgo: 1)],
+            archived: [makeArchivedDay(20240101)],
+            referenceDate: referenceDate,
+            costMode: .calculate
+        )
+        XCTAssertEqual(result.allTime.inputTokens, 1100, "100 live plus 1000 archived")
+    }
+
+    func testOldArchivedDaysStayOutOfTheThirtyDayWindow() {
+        let result = UsageAggregator.aggregate(
+            entries: [],
+            archived: [makeArchivedDay(20240101)],
+            referenceDate: referenceDate,
+            costMode: .calculate
+        )
+        XCTAssertEqual(result.last30Days.inputTokens, 0)
+        XCTAssertEqual(result.allTime.inputTokens, 1000)
+    }
+
+    func testArchivedModelsMergeIntoTheModelList() {
+        let result = UsageAggregator.aggregate(
+            entries: [makeEntry(hoursAgo: 1, model: "claude-sonnet-4-6")],
+            archived: [makeArchivedDay(20240101, models: ["claude-opus-5": 99_999])],
+            referenceDate: referenceDate,
+            costMode: .calculate
+        )
+        XCTAssertEqual(result.allTime.modelsUsed, ["claude-opus-5", "claude-sonnet-4-6"],
+                       "ranked by tokens, archived models included")
+    }
+
+    func testArchivedCostIsNotRepriced() {
+        let result = UsageAggregator.aggregate(
+            entries: [],
+            archived: [makeArchivedDay(20240101, cost: 42.0)],
+            referenceDate: referenceDate,
+            costMode: .display
+        )
+        XCTAssertEqual(result.allTime.totalCost, 42.0, accuracy: 0.000001)
+    }
 }
