@@ -137,4 +137,38 @@ final class UsageRepositoryTests: XCTestCase {
             "deleting a transcript must not change any total"
         )
     }
+
+    func testFailedSyncDoesNotClobberFilesParsedCount() throws {
+        let database = try UsageDatabase(path: databasePath)
+        let repository = UsageRepository(database: database, projectsPath: projects.path)
+
+        _ = try writeJournal("a.jsonl", [
+            assistantLine(requestId: "req_1", timestamp: "2026-08-24T10:00:00.000Z")
+        ])
+        _ = try repository.snapshot(costMode: .calculate)
+        XCTAssertEqual(repository.filesParsedInLastSync, 1)
+
+        // Force a genuine SQL failure on the next pass: a trigger that aborts any
+        // insert into file_entry, the same way a real constraint violation would
+        // fail partway through replaceFile. This is a database-level fixture, not
+        // a hook in production code.
+        try database.withConnection { connection in
+            try connection.execute("""
+                CREATE TRIGGER reject_new_entries
+                BEFORE INSERT ON file_entry
+                BEGIN
+                    SELECT RAISE(ABORT, 'forced failure for test');
+                END;
+                """)
+        }
+        _ = try writeJournal("b.jsonl", [
+            assistantLine(requestId: "req_2", timestamp: "2026-08-24T11:00:00.000Z")
+        ])
+
+        XCTAssertThrowsError(try repository.snapshot(costMode: .calculate))
+        XCTAssertEqual(
+            repository.filesParsedInLastSync, 1,
+            "a failed pass must not overwrite the count from the last successful one"
+        )
+    }
 }

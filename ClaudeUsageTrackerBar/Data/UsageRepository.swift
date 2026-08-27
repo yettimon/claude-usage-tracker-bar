@@ -39,9 +39,10 @@ final class UsageRepository {
     }
 
     func snapshot(costMode: CostMode, referenceDate: Date = Date()) throws -> UsageAggregator.Result {
-        try database.withConnection { connection in
+        var parsedCount = 0
+        let result = try database.withConnection { connection in
             try connection.transaction {
-                try syncFiles(connection)
+                parsedCount = try syncFiles(connection)
                 let working = try loadWorkingEntries(connection)
                 return UsageAggregator.aggregate(
                     entries: UsageAggregator.dedupe(working),
@@ -50,12 +51,17 @@ final class UsageRepository {
                 )
             }
         }
+        // Only recorded once the whole pass has committed: a pass that throws
+        // rolls the database back, and the count of files it touched must not
+        // survive that rollback and be reported as real work.
+        filesParsedInLastSync = parsedCount
+        return result
     }
 
     // MARK: - Step 1: sync files
 
-    private func syncFiles(_ connection: UsageDatabase.Connection) throws {
-        filesParsedInLastSync = 0
+    private func syncFiles(_ connection: UsageDatabase.Connection) throws -> Int {
+        var filesParsed = 0
 
         var cursors: [String: (size: Int, mtime: Double)] = [:]
         for row in try connection.query("SELECT path, size, mtime FROM file_cursor", row: {
@@ -78,8 +84,10 @@ final class UsageRepository {
                 continue
             }
             try replaceFile(url, size: size, mtime: mtime, in: connection)
-            filesParsedInLastSync += 1
+            filesParsed += 1
         }
+
+        return filesParsed
     }
 
     private func replaceFile(
