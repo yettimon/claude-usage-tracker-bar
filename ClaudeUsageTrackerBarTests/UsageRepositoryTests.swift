@@ -83,6 +83,15 @@ final class UsageRepositoryTests: XCTestCase {
         return url
     }
 
+    /// Row count in `file_entry`, read through a second connection on the same
+    /// file. WAL plus the busy timeout make this safe between passes.
+    func workingEntryCount() throws -> Int {
+        let database = try UsageDatabase(path: databasePath)
+        return try database.withConnection { connection in
+            try connection.query("SELECT COUNT(*) FROM file_entry") { $0.int(0) }
+        }.first ?? 0
+    }
+
     func makeRepository() throws -> UsageRepository {
         UsageRepository(
             database: try UsageDatabase(path: databasePath),
@@ -333,6 +342,46 @@ final class UsageRepositoryTests: XCTestCase {
         let recovered = try repository.snapshot(costMode: .calculate, referenceDate: reference)
         XCTAssertEqual(repository.filesParsedInLastSync, 1, "the file is re-read, not served from the cache")
         XCTAssertEqual(recovered.allTime.inputTokens, 200)
+    }
+
+    // MARK: - Sealing happens exactly once per day
+
+    /// A sealed day must never be recomputed. Before this was closed, a file
+    /// dated into an already-archived day left its rows in `file_entry`; when that
+    /// file died the day looked sealable again and `INSERT OR REPLACE` overwrote a
+    /// correct archive row with whatever partial data the late file carried.
+    func testALateArrivalCannotOverwriteASealedDay() throws {
+        let url = try writeJournal("a.jsonl", [
+            assistantLine(requestId: "req_1", timestamp: "2026-08-24T10:00:00.000Z",
+                          input: 700, output: 300)
+        ])
+        let reference = date("2026-08-26T12:00:00Z")
+        let repository = try makeRepository()
+        _ = try repository.snapshot(costMode: .calculate, referenceDate: reference)
+        try FileManager.default.removeItem(at: url)
+        _ = try repository.snapshot(costMode: .calculate, referenceDate: reference)
+
+        let sealedRow = try XCTUnwrap(try repository.archivedDays().first)
+        XCTAssertEqual(sealedRow.inputTokens, 700)
+
+        // A partial backup restores one turn from that day — a different turn, so
+        // its totals are nothing like the archived ones.
+        let restored = try writeJournal("restored.jsonl", [
+            assistantLine(requestId: "req_2", timestamp: "2026-08-24T11:00:00.000Z",
+                          input: 1, output: 1)
+        ])
+        _ = try repository.snapshot(costMode: .calculate, referenceDate: reference)
+        XCTAssertEqual(try workingEntryCount(), 0,
+                       "entries dated into a sealed day are dropped on sight, not left to re-seal")
+
+        // Then Claude Code's cleanup takes it away again.
+        try FileManager.default.removeItem(at: restored)
+        let after = try repository.snapshot(costMode: .calculate, referenceDate: reference)
+
+        XCTAssertEqual(try repository.archivedDays(), [sealedRow],
+                       "the archive row is authoritative and is never recomputed")
+        XCTAssertEqual(after.daily[dayDate(20260824)]?.totalTokens, sealedRow.totalTokens)
+        XCTAssertEqual(after.allTime.inputTokens, 700)
     }
 
     // MARK: - requestId closure across the seal boundary

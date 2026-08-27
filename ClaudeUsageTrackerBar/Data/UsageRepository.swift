@@ -63,12 +63,13 @@ final class UsageRepository {
                 let archived = try UsageArchive.all(from: connection)
                 let sealedDays = Set(archived.map(\.day))
 
-                // A file can appear after its day sealed — a restored backup, or a
-                // transcript written with older timestamps. The archive row was
-                // computed when the evidence was complete, so it wins. Compare the
-                // row's stored `day`, not a fresh `DayKey.from(timestamp)`: after a
-                // timezone change the recomputed key can drift onto a sealed day
-                // and throw away a live entry that was never archived.
+                // Backstop. `seal` already drops entries dated into a sealed day the
+                // moment they appear, so this normally has nothing to do; it stays
+                // because it is cheap and it is the last thing standing between a
+                // late arrival and a double count if that step is ever reordered.
+                // Compare the row's stored `day`, not a fresh `DayKey.from(timestamp)`:
+                // after a timezone change the recomputed key can drift onto a sealed
+                // day and throw away a live entry that was never archived.
                 let working = try loadWorkingEntries(connection)
                 let fresh = working.filter { !sealedDays.contains($0.day) }
                 if fresh.count != working.count {
@@ -211,17 +212,68 @@ final class UsageRepository {
         referenceDate: Date,
         costMode: CostMode
     ) throws {
+        try dropEntriesDatedIntoSealedDays(connection)
+        try sealCompleteDays(connection, referenceDate: referenceDate, costMode: costMode)
+        try removeSpentCursors(connection)
+    }
+
+    /// Discards working-set entries dated into a day that is already archived.
+    ///
+    /// The archive row was computed when the evidence was complete and is
+    /// authoritative, so these rows can never contribute to a total — the fold in
+    /// `snapshot` filters them out. Leaving them behind is not merely untidy:
+    ///
+    /// - the day would become a seal candidate again once their file dies, and
+    ///   `INSERT OR REPLACE` would overwrite a correct archive row with whatever
+    ///   partial data the late file happened to carry;
+    /// - they would join the seal fold, where a late copy could out-token the real
+    ///   copy on a day that *is* sealing, win the dedup, and take that turn out of
+    ///   the archive row entirely — the winner's day is archived, so it is never
+    ///   bucketed;
+    /// - they would be reloaded on every pass forever, and hold a dead cursor open.
+    ///
+    /// Dropping them on sight also keeps the requestId closure simple: an archived
+    /// day has no rows, so it can never appear in a component.
+    private func dropEntriesDatedIntoSealedDays(_ connection: UsageDatabase.Connection) throws {
+        let stranded = try connection.query("""
+            SELECT COUNT(*) FROM file_entry WHERE day IN (SELECT day FROM daily_archive)
+            """, row: { $0.int(0) }).first ?? 0
+        guard stranded > 0 else { return }
+
+        try connection.run("DELETE FROM file_entry WHERE day IN (SELECT day FROM daily_archive)")
+        logger.notice("dropped \(stranded) entries dated into an already-sealed day")
+    }
+
+    /// Removes cursors for files that are gone from disk and have no entries left.
+    /// Runs every pass, not only when something sealed, so a dead file whose rows
+    /// were all late arrivals does not linger until an unrelated day seals.
+    private func removeSpentCursors(_ connection: UsageDatabase.Connection) throws {
+        try connection.run("""
+            DELETE FROM file_cursor
+            WHERE alive = 0 AND path NOT IN (SELECT DISTINCT path FROM file_entry)
+            """)
+    }
+
+    private func sealCompleteDays(
+        _ connection: UsageDatabase.Connection,
+        referenceDate: Date,
+        costMode: CostMode
+    ) throws {
         let today = DayKey.from(referenceDate)
 
         // Cheap, index-backed gate on the common case of nothing to seal, so a
         // routine refresh never loads the working set twice. It is deliberately
         // the loose test — `sealableDays` applies the same conditions plus the
         // requestId closure, and can only narrow this set, never widen it.
+        //
+        // An already-archived day is excluded outright: sealing is irreversible,
+        // so a day is frozen exactly once and its row is never recomputed.
         let candidates = try connection.query("""
             SELECT day FROM file_entry
             GROUP BY day
             HAVING SUM(path IN (SELECT path FROM file_cursor WHERE alive = 1)) = 0
                AND day < ?
+               AND day NOT IN (SELECT day FROM daily_archive)
             """, [.int(today)], row: { $0.int(0) })
         guard !candidates.isEmpty else { return }
 
@@ -257,11 +309,6 @@ final class UsageRepository {
         }
 
         try deleteSealedEntries(sealed, working: working, in: connection)
-
-        try connection.run("""
-            DELETE FROM file_cursor
-            WHERE alive = 0 AND path NOT IN (SELECT DISTINCT path FROM file_entry)
-            """)
         logger.notice("sealed \(sealed.count) day(s) into the archive")
     }
 
