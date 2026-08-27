@@ -43,9 +43,23 @@ final class UsageRepository {
         let result = try database.withConnection { connection in
             try connection.transaction {
                 parsedCount = try syncFiles(connection)
+                try seal(connection, referenceDate: referenceDate, costMode: costMode)
+
+                let archived = try UsageArchive.all(from: connection)
+                let sealedDays = Set(archived.map(\.day))
+
+                // A file can appear after its day sealed — a restored backup, or a
+                // transcript written with older timestamps. The archive row was
+                // computed when the evidence was complete, so it wins.
                 let working = try loadWorkingEntries(connection)
+                let fresh = working.filter { !sealedDays.contains(DayKey.from($0.entry.timestamp)) }
+                if fresh.count != working.count {
+                    logger.notice("ignored \(working.count - fresh.count) entries dated into sealed days")
+                }
+
                 return UsageAggregator.aggregate(
-                    entries: UsageAggregator.dedupe(working),
+                    entries: UsageAggregator.dedupe(fresh),
+                    archived: archived,
                     referenceDate: referenceDate,
                     costMode: costMode
                 )
@@ -56,6 +70,10 @@ final class UsageRepository {
         // survive that rollback and be reported as real work.
         filesParsedInLastSync = parsedCount
         return result
+    }
+
+    func archivedDays() throws -> [ArchivedDay] {
+        try database.withConnection { try UsageArchive.all(from: $0) }
     }
 
     // MARK: - Step 1: sync files
@@ -127,6 +145,48 @@ final class UsageRepository {
         }
     }
 
+    // MARK: - Step 2: seal
+
+    /// Moves days into the archive once no live file feeds them.
+    ///
+    /// Duplicated turns carry the same timestamp in every file they appear in, so
+    /// all copies of a turn land in the same day. A day with no live contributor
+    /// therefore cannot gain a cross-file dedup partner later, which is what makes
+    /// freezing it safe without any grace period.
+    private func seal(
+        _ connection: UsageDatabase.Connection,
+        referenceDate: Date,
+        costMode: CostMode
+    ) throws {
+        let today = DayKey.from(referenceDate)
+        let sealable = try connection.query("""
+            SELECT day FROM file_entry
+            GROUP BY day
+            HAVING SUM(path IN (SELECT path FROM file_cursor WHERE alive = 1)) = 0
+               AND day < ?
+            """, [.int(today)], row: { $0.int(0) })
+
+        guard !sealable.isEmpty else { return }
+
+        for day in sealable {
+            let parsed = try loadWorkingEntries(connection, day: day)
+            let archived = ArchivedDay(
+                day: day,
+                entries: UsageAggregator.dedupe(parsed),
+                costMode: costMode,
+                sealedAt: referenceDate
+            )
+            try UsageArchive.insert(archived, into: connection)
+            try connection.run("DELETE FROM file_entry WHERE day = ?", [.int(day)])
+        }
+
+        try connection.run("""
+            DELETE FROM file_cursor
+            WHERE alive = 0 AND path NOT IN (SELECT DISTINCT path FROM file_entry)
+            """)
+        logger.notice("sealed \(sealable.count) day(s) into the archive")
+    }
+
     private func journalFiles() -> [URL] {
         guard let enumerator = fileManager.enumerator(
             at: URL(fileURLWithPath: projectsPath),
@@ -144,13 +204,16 @@ final class UsageRepository {
     // MARK: - Step 3: fold the working set
 
     private func loadWorkingEntries(
-        _ connection: UsageDatabase.Connection
+        _ connection: UsageDatabase.Connection,
+        day: Int? = nil
     ) throws -> [JournalParser.ParsedEntry] {
-        try connection.query("""
+        let filter = day == nil ? "" : " WHERE day = ?"
+        let binds: [SQLValue] = day.map { [.int($0)] } ?? []
+        return try connection.query("""
             SELECT request_id, ts, model, input_tokens, output_tokens,
                    cache_write_5m, cache_write_1h, cache_read, cost_usd
-            FROM file_entry
-            """) { row in
+            FROM file_entry\(filter)
+            """, binds) { row in
                 let cacheWrite5m = row.int(5)
                 let cacheWrite1h = row.int(6)
                 return JournalParser.ParsedEntry(

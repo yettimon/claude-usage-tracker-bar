@@ -171,4 +171,119 @@ final class UsageRepositoryTests: XCTestCase {
             "a failed pass must not overwrite the count from the last successful one"
         )
     }
+
+    private func archivedDays(_ repository: UsageRepository) throws -> [ArchivedDay] {
+        try repository.archivedDays()
+    }
+
+    func testSealsADayOnceItsOnlyFileIsGone() throws {
+        let url = try writeJournal("a.jsonl", [
+            assistantLine(requestId: "req_1", timestamp: "2026-08-24T10:00:00.000Z")
+        ])
+        let reference = ISO8601DateFormatter().date(from: "2026-08-26T12:00:00Z")!
+        let repository = try makeRepository()
+        _ = try repository.snapshot(costMode: .calculate, referenceDate: reference)
+
+        XCTAssertEqual(try archivedDays(repository).count, 0, "nothing seals while the file exists")
+
+        try FileManager.default.removeItem(at: url)
+        let result = try repository.snapshot(costMode: .calculate, referenceDate: reference)
+
+        let archived = try archivedDays(repository)
+        XCTAssertEqual(archived.count, 1)
+        XCTAssertEqual(archived[0].day, 20260824)
+        XCTAssertEqual(archived[0].requestCount, 1)
+        XCTAssertEqual(result.daily[DayKey.date(20260824)]?.requestCount, 1,
+                       "the sealed day still shows up in the daily map")
+    }
+
+    func testDoesNotSealADayThatALiveFileStillFeeds() throws {
+        let gone = try writeJournal("a.jsonl", [
+            assistantLine(requestId: "req_1", timestamp: "2026-08-24T10:00:00.000Z")
+        ])
+        _ = try writeJournal("b.jsonl", [
+            assistantLine(requestId: "req_2", timestamp: "2026-08-24T11:00:00.000Z")
+        ])
+        let reference = ISO8601DateFormatter().date(from: "2026-08-26T12:00:00Z")!
+        let repository = try makeRepository()
+        _ = try repository.snapshot(costMode: .calculate, referenceDate: reference)
+
+        try FileManager.default.removeItem(at: gone)
+        _ = try repository.snapshot(costMode: .calculate, referenceDate: reference)
+
+        XCTAssertEqual(try archivedDays(repository).count, 0,
+                       "b.jsonl still feeds 2026-08-24, so the day stays live")
+    }
+
+    func testNeverSealsToday() throws {
+        let url = try writeJournal("a.jsonl", [
+            assistantLine(requestId: "req_1", timestamp: "2026-08-26T10:00:00.000Z")
+        ])
+        let reference = ISO8601DateFormatter().date(from: "2026-08-26T12:00:00Z")!
+        let repository = try makeRepository()
+        _ = try repository.snapshot(costMode: .calculate, referenceDate: reference)
+
+        try FileManager.default.removeItem(at: url)
+        let result = try repository.snapshot(costMode: .calculate, referenceDate: reference)
+
+        XCTAssertEqual(try archivedDays(repository).count, 0)
+        XCTAssertEqual(result.today.inputTokens, 100, "today's entries survive in the working set")
+    }
+
+    func testSealedTotalsSurviveTheFileDisappearing() throws {
+        let url = try writeJournal("a.jsonl", [
+            assistantLine(requestId: "req_1", timestamp: "2026-08-24T10:00:00.000Z", input: 700, output: 300)
+        ])
+        let reference = ISO8601DateFormatter().date(from: "2026-08-26T12:00:00Z")!
+        let repository = try makeRepository()
+        let before = try repository.snapshot(costMode: .calculate, referenceDate: reference)
+
+        try FileManager.default.removeItem(at: url)
+        let after = try repository.snapshot(costMode: .calculate, referenceDate: reference)
+
+        XCTAssertEqual(after.allTime.inputTokens, before.allTime.inputTokens)
+        XCTAssertEqual(after.allTime.outputTokens, before.allTime.outputTokens)
+        XCTAssertEqual(after.allTime.totalCost, before.allTime.totalCost, accuracy: 0.000001)
+        XCTAssertEqual(after.allTime.modelsUsed, before.allTime.modelsUsed,
+                       "the models JSON column preserves the All-time model list")
+    }
+
+    func testIgnoresLateArrivalsIntoASealedDay() throws {
+        let url = try writeJournal("a.jsonl", [
+            assistantLine(requestId: "req_1", timestamp: "2026-08-24T10:00:00.000Z")
+        ])
+        let reference = ISO8601DateFormatter().date(from: "2026-08-26T12:00:00Z")!
+        let repository = try makeRepository()
+        _ = try repository.snapshot(costMode: .calculate, referenceDate: reference)
+        try FileManager.default.removeItem(at: url)
+        let sealed = try repository.snapshot(costMode: .calculate, referenceDate: reference)
+
+        // A restored backup lands after the day sealed.
+        _ = try writeJournal("restored.jsonl", [
+            assistantLine(requestId: "req_1", timestamp: "2026-08-24T10:00:00.000Z")
+        ])
+        let after = try repository.snapshot(costMode: .calculate, referenceDate: reference)
+
+        XCTAssertEqual(after.daily[DayKey.date(20260824)], sealed.daily[DayKey.date(20260824)],
+                       "the archived row wins; the day is not double counted")
+    }
+
+    func testFreezesCostUnderTheModeActiveAtSealTime() throws {
+        let url = try writeJournal("a.jsonl", [
+            assistantLine(requestId: "req_1", timestamp: "2026-08-24T10:00:00.000Z")
+        ])
+        let reference = ISO8601DateFormatter().date(from: "2026-08-26T12:00:00Z")!
+        let repository = try makeRepository()
+        _ = try repository.snapshot(costMode: .calculate, referenceDate: reference)
+        try FileManager.default.removeItem(at: url)
+        _ = try repository.snapshot(costMode: .calculate, referenceDate: reference)
+
+        let frozen = try archivedDays(repository)[0]
+        XCTAssertEqual(frozen.costMode, .calculate)
+
+        // Switching to .display would price this entry at $0 if it were still live.
+        let after = try repository.snapshot(costMode: .display, referenceDate: reference)
+        let repriced = try XCTUnwrap(after.daily[DayKey.date(20260824)]).cost
+        XCTAssertEqual(repriced, frozen.cost, accuracy: 0.000001)
+    }
 }
