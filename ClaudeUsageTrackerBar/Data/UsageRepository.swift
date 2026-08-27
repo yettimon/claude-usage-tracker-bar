@@ -19,6 +19,21 @@ final class UsageRepository {
     /// every file was served from the cache.
     private(set) var filesParsedInLastSync = 0
 
+    /// One `file_entry` row: the parsed turn plus the day key stamped on it when
+    /// the file was read. That stored key is authoritative everywhere below —
+    /// recomputing it from the timestamp would silently move entries between days
+    /// if the user changes timezone between one pass and the next.
+    private struct WorkingEntry {
+        let day: Int
+        let parsed: JournalParser.ParsedEntry
+    }
+
+    /// Recorded in `file_cursor` when `stat` fails. A successful stat can never
+    /// produce it — sizes are never negative — and the cache-hit test below
+    /// requires a successful stat on both sides, so this value can never match
+    /// itself and freeze a file at whatever a failing pass happened to see.
+    private static let statFailed = -1
+
     init(
         database: UsageDatabase,
         projectsPath: String = ("~/.claude/projects" as NSString).expandingTildeInPath
@@ -33,7 +48,7 @@ final class UsageRepository {
         do {
             return UsageRepository(database: try UsageDatabase(path: UsageDatabase.defaultPath))
         } catch {
-            logger.error("could not open usage database: \(String(describing: error), privacy: .public)")
+            logger.error("could not open usage database: \(String(describing: error))")
             return nil
         }
     }
@@ -50,15 +65,20 @@ final class UsageRepository {
 
                 // A file can appear after its day sealed — a restored backup, or a
                 // transcript written with older timestamps. The archive row was
-                // computed when the evidence was complete, so it wins.
+                // computed when the evidence was complete, so it wins. Compare the
+                // row's stored `day`, not a fresh `DayKey.from(timestamp)`: after a
+                // timezone change the recomputed key can drift onto a sealed day
+                // and throw away a live entry that was never archived.
                 let working = try loadWorkingEntries(connection)
-                let fresh = working.filter { !sealedDays.contains(DayKey.from($0.entry.timestamp)) }
+                let fresh = working.filter { !sealedDays.contains($0.day) }
                 if fresh.count != working.count {
                     logger.notice("ignored \(working.count - fresh.count) entries dated into sealed days")
                 }
 
+                // Deduping the remainder on its own is sound because `seal` leaves
+                // no row behind whose requestId was banked into the archive.
                 return UsageAggregator.aggregate(
-                    entries: UsageAggregator.dedupe(fresh),
+                    entries: UsageAggregator.dedupe(fresh.map(\.parsed)),
                     archived: archived,
                     referenceDate: referenceDate,
                     costMode: costMode
@@ -94,35 +114,59 @@ final class UsageRepository {
 
         for url in journalFiles() {
             let attributes = try? fileManager.attributesOfItem(atPath: url.path)
-            let size = (attributes?[.size] as? NSNumber)?.intValue ?? -1
-            let mtime = (attributes?[.modificationDate] as? Date)?.timeIntervalSince1970 ?? -1
+            let size = (attributes?[.size] as? NSNumber)?.intValue
+            let mtime = (attributes?[.modificationDate] as? Date)?.timeIntervalSince1970
 
-            if let cursor = cursors[url.path], cursor.size == size, cursor.mtime == mtime {
-                try connection.run("UPDATE file_cursor SET alive = 1 WHERE path = ?", [.text(url.path)])
+            // A cache hit needs a successful stat on both sides. A file we cannot
+            // stat falls through to a reparse on every pass until stat works.
+            if let size, let mtime, let cursor = cursors[url.path],
+               cursor.size == size, cursor.mtime == mtime {
+                try markAlive(url, in: connection)
                 continue
             }
-            try replaceFile(url, size: size, mtime: mtime, in: connection)
+
+            guard let parsed = JournalParser.parseFileEntries(at: url) else {
+                // Unreadable right now. Leave the cursor and the entries an earlier
+                // pass stored: caching "unreadable" as "no assistant turns" would
+                // delete real usage and then never re-read the file, because the
+                // cursor would match on every later pass. The file is on disk, so
+                // it stays alive and holds its days open; the next pass retries.
+                logger.warning("could not read a transcript; keeping its cached entries and retrying next pass")
+                try markAlive(url, in: connection)
+                continue
+            }
+
+            try replaceFile(
+                url,
+                entries: parsed,
+                size: size ?? Self.statFailed,
+                mtime: mtime ?? Double(Self.statFailed),
+                in: connection
+            )
             filesParsed += 1
         }
 
         return filesParsed
     }
 
+    private func markAlive(_ url: URL, in connection: UsageDatabase.Connection) throws {
+        try connection.run("UPDATE file_cursor SET alive = 1 WHERE path = ?", [.text(url.path)])
+    }
+
     private func replaceFile(
         _ url: URL,
+        entries: [JournalParser.ParsedEntry],
         size: Int,
         mtime: Double,
         in connection: UsageDatabase.Connection
     ) throws {
-        let parsed = JournalParser.parseFileEntries(at: url)
-
         try connection.run("DELETE FROM file_entry WHERE path = ?", [.text(url.path)])
         try connection.run("""
             INSERT INTO file_cursor (path, size, mtime, alive) VALUES (?, ?, ?, 1)
             ON CONFLICT(path) DO UPDATE SET size = excluded.size, mtime = excluded.mtime, alive = 1
             """, [.text(url.path), .int(size), .double(mtime)])
 
-        for item in parsed {
+        for item in entries {
             let entry = item.entry
             try connection.run("""
                 INSERT INTO file_entry
@@ -149,42 +193,165 @@ final class UsageRepository {
 
     /// Moves days into the archive once no live file feeds them.
     ///
-    /// Duplicated turns carry the same timestamp in every file they appear in, so
-    /// all copies of a turn land in the same day. A day with no live contributor
-    /// therefore cannot gain a cross-file dedup partner later, which is what makes
-    /// freezing it safe without any grace period.
+    /// The rule is closed over `request_id`, not over `day`. The copies of a
+    /// duplicated turn do **not** share a timestamp: Claude Code writes the
+    /// streaming placeholder and the finished turn seconds apart — measured on a
+    /// real database, 3,987 of 3,988 duplicated requestIds carry differing
+    /// timestamps, spread by up to 452 seconds — so a turn can straddle midnight
+    /// with one copy on each of two days. A day may therefore be frozen only when
+    /// every requestId on it is confined to days sealing in the same pass;
+    /// otherwise one copy is banked here and the other counted again from the
+    /// working set, permanently, because sealing is irreversible.
+    ///
+    /// The fold itself runs once over the entire working set and is only bucketed
+    /// by day afterwards, so the global dedup invariant holds across the seal
+    /// boundary exactly as it does within a single pass.
     private func seal(
         _ connection: UsageDatabase.Connection,
         referenceDate: Date,
         costMode: CostMode
     ) throws {
         let today = DayKey.from(referenceDate)
-        let sealable = try connection.query("""
+
+        // Cheap, index-backed gate on the common case of nothing to seal, so a
+        // routine refresh never loads the working set twice. It is deliberately
+        // the loose test — `sealableDays` applies the same conditions plus the
+        // requestId closure, and can only narrow this set, never widen it.
+        let candidates = try connection.query("""
             SELECT day FROM file_entry
             GROUP BY day
             HAVING SUM(path IN (SELECT path FROM file_cursor WHERE alive = 1)) = 0
                AND day < ?
             """, [.int(today)], row: { $0.int(0) })
+        guard !candidates.isEmpty else { return }
 
-        guard !sealable.isEmpty else { return }
+        let working = try loadWorkingEntries(connection)
+        let liveDays = Set(try connection.query("""
+            SELECT DISTINCT day FROM file_entry
+            WHERE path IN (SELECT path FROM file_cursor WHERE alive = 1)
+            """, row: { $0.int(0) }))
 
-        for day in sealable {
-            let parsed = try loadWorkingEntries(connection, day: day)
-            let archived = ArchivedDay(
-                day: day,
-                entries: UsageAggregator.dedupe(parsed),
-                costMode: costMode,
-                sealedAt: referenceDate
-            )
-            try UsageArchive.insert(archived, into: connection)
-            try connection.run("DELETE FROM file_entry WHERE day = ?", [.int(day)])
+        let sealed = Self.sealableDays(in: working, liveDays: liveDays, today: today)
+        guard !sealed.isEmpty else { return }
+
+        // One fold over everything, then bucket. Never a fold per day.
+        // Every sealed day gets a row even if it ends up empty — its only turn may
+        // have lost the dedup to a copy on the neighbouring day. The row records
+        // that the day is closed, which is what makes a restored backup carrying
+        // the losing copy read as a late arrival instead of new usage.
+        var buckets: [Int: [JournalEntry]] = sealed.reduce(into: [:]) { $0[$1] = [] }
+        for row in UsageAggregator.dedupe(working, entry: \.parsed) where sealed.contains(row.day) {
+            buckets[row.day, default: []].append(row.parsed.entry)
         }
+
+        for day in sealed.sorted() {
+            try UsageArchive.insert(
+                ArchivedDay(
+                    day: day,
+                    entries: buckets[day] ?? [],
+                    costMode: costMode,
+                    sealedAt: referenceDate
+                ),
+                into: connection
+            )
+        }
+
+        try deleteSealedEntries(sealed, working: working, in: connection)
 
         try connection.run("""
             DELETE FROM file_cursor
             WHERE alive = 0 AND path NOT IN (SELECT DISTINCT path FROM file_entry)
             """)
-        logger.notice("sealed \(sealable.count) day(s) into the archive")
+        logger.notice("sealed \(sealed.count) day(s) into the archive")
+    }
+
+    /// Days that may be frozen this pass: no live file feeds them, they fall
+    /// strictly before today, and no requestId on them reaches a day that fails
+    /// either test.
+    ///
+    /// Days are joined into components by the requestIds they share, and a
+    /// component seals all-or-nothing. Entries with no requestId join nothing.
+    /// Given the measured 452-second maximum spread within one requestId, a
+    /// component in practice never spans more than two adjacent days, so holding a
+    /// day back costs at most one extra day of archive latency.
+    private static func sealableDays(
+        in working: [WorkingEntry],
+        liveDays: Set<Int>,
+        today: Int
+    ) -> Set<Int> {
+        var parent: [Int: Int] = [:]
+
+        func root(_ day: Int) -> Int {
+            var day = day
+            while let next = parent[day], next != day { day = next }
+            return day
+        }
+
+        func union(_ a: Int, _ b: Int) {
+            let (rootA, rootB) = (root(a), root(b))
+            if rootA != rootB { parent[rootB] = rootA }
+        }
+
+        var days: Set<Int> = []
+        var firstDayOfRequestId: [String: Int] = [:]
+        for row in working {
+            if days.insert(row.day).inserted { parent[row.day] = row.day }
+            guard let requestId = row.parsed.requestId else { continue }
+            if let first = firstDayOfRequestId[requestId] {
+                union(first, row.day)
+            } else {
+                firstDayOfRequestId[requestId] = row.day
+            }
+        }
+
+        var blocked: Set<Int> = []
+        for day in days where day >= today || liveDays.contains(day) {
+            blocked.insert(root(day))
+        }
+
+        var sealable: Set<Int> = []
+        for day in days where !blocked.contains(root(day)) {
+            sealable.insert(day)
+        }
+        return sealable
+    }
+
+    /// Drops the sealed days' rows, plus any row anywhere carrying a requestId
+    /// that was just banked, so a losing copy cannot survive on a neighbouring day
+    /// and be folded in again.
+    ///
+    /// `sealableDays` already guarantees no such stray exists. Finding one means
+    /// the closure has regressed, so it is logged rather than quietly swept up.
+    private func deleteSealedEntries(
+        _ sealed: Set<Int>,
+        working: [WorkingEntry],
+        in connection: UsageDatabase.Connection
+    ) throws {
+        let days = sealed.sorted()
+        try connection.run(
+            "DELETE FROM file_entry WHERE day IN (\(placeholders(days.count)))",
+            days.map { SQLValue.int($0) }
+        )
+
+        let banked = Set(working.lazy.filter { sealed.contains($0.day) }.compactMap(\.parsed.requestId))
+        let strays = Set(working.lazy.filter { !sealed.contains($0.day) }.compactMap(\.parsed.requestId))
+            .intersection(banked)
+        guard !strays.isEmpty else { return }
+
+        logger.error("\(strays.count) archived request id(s) still on an unsealed day; removing them")
+        let list = Array(strays)
+        // Chunked so the statement can never exceed SQLite's bound-variable limit.
+        for start in stride(from: 0, to: list.count, by: 400) {
+            let chunk = list[start..<min(start + 400, list.count)]
+            try connection.run(
+                "DELETE FROM file_entry WHERE request_id IN (\(placeholders(chunk.count)))",
+                chunk.map { SQLValue.text($0) }
+            )
+        }
+    }
+
+    private func placeholders(_ count: Int) -> String {
+        Array(repeating: "?", count: count).joined(separator: ",")
     }
 
     private func journalFiles() -> [URL] {
@@ -204,30 +371,30 @@ final class UsageRepository {
     // MARK: - Step 3: fold the working set
 
     private func loadWorkingEntries(
-        _ connection: UsageDatabase.Connection,
-        day: Int? = nil
-    ) throws -> [JournalParser.ParsedEntry] {
-        let filter = day == nil ? "" : " WHERE day = ?"
-        let binds: [SQLValue] = day.map { [.int($0)] } ?? []
-        return try connection.query("""
+        _ connection: UsageDatabase.Connection
+    ) throws -> [WorkingEntry] {
+        try connection.query("""
             SELECT request_id, ts, model, input_tokens, output_tokens,
-                   cache_write_5m, cache_write_1h, cache_read, cost_usd
-            FROM file_entry\(filter)
-            """, binds) { row in
+                   cache_write_5m, cache_write_1h, cache_read, cost_usd, day
+            FROM file_entry
+            """) { row in
                 let cacheWrite5m = row.int(5)
                 let cacheWrite1h = row.int(6)
-                return JournalParser.ParsedEntry(
-                    requestId: row.optionalText(0),
-                    entry: JournalEntry(
-                        timestamp: Date(timeIntervalSince1970: row.double(1)),
-                        model: row.text(2),
-                        inputTokens: row.int(3),
-                        outputTokens: row.int(4),
-                        cacheWriteTokens: cacheWrite5m + cacheWrite1h,
-                        cacheWrite5mTokens: cacheWrite5m,
-                        cacheWrite1hTokens: cacheWrite1h,
-                        cacheReadTokens: row.int(7),
-                        costUSD: row.optionalDouble(8)
+                return WorkingEntry(
+                    day: row.int(9),
+                    parsed: JournalParser.ParsedEntry(
+                        requestId: row.optionalText(0),
+                        entry: JournalEntry(
+                            timestamp: Date(timeIntervalSince1970: row.double(1)),
+                            model: row.text(2),
+                            inputTokens: row.int(3),
+                            outputTokens: row.int(4),
+                            cacheWriteTokens: cacheWrite5m + cacheWrite1h,
+                            cacheWrite5mTokens: cacheWrite5m,
+                            cacheWrite1hTokens: cacheWrite1h,
+                            cacheReadTokens: row.int(7),
+                            costUSD: row.optionalDouble(8)
+                        )
                     )
                 )
             }

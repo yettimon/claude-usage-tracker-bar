@@ -42,28 +42,42 @@ enum UsageAggregator {
     /// Claude Code writes an incomplete entry while a response streams and a full
     /// one when it finishes, and copies whole turns between files on session
     /// resume and into subagent transcripts. Duplicates therefore span files, so
-    /// this must run across the entire set at once, never per file.
+    /// this must run across the entire set at once, never per file — and never
+    /// per day, because the two copies of one turn carry *different* timestamps
+    /// and can land either side of midnight.
     /// Entries with no `requestId` are never merged.
     static func dedupe(_ parsed: [JournalParser.ParsedEntry]) -> [JournalEntry] {
-        var indexByRequestId: [String: Int] = [:]
-        var entries: [JournalEntry] = []
+        dedupe(parsed, entry: { $0 }).map(\.entry)
+    }
 
-        for item in parsed {
-            guard let requestId = item.requestId else {
-                entries.append(item.entry)
+    /// The same fold, over rows that carry an entry plus whatever else the caller
+    /// needs to keep. The archive needs each winner's stored `day` so it can bank
+    /// the turn on the day the winning copy actually belongs to, so both callers
+    /// share one implementation rather than reimplementing the tie-break.
+    static func dedupe<Row>(
+        _ rows: [Row],
+        entry item: (Row) -> JournalParser.ParsedEntry
+    ) -> [Row] {
+        var indexByRequestId: [String: Int] = [:]
+        var kept: [Row] = []
+
+        for row in rows {
+            let parsed = item(row)
+            guard let requestId = parsed.requestId else {
+                kept.append(row)
                 continue
             }
             if let existing = indexByRequestId[requestId] {
-                if item.entry.totalTokens > entries[existing].totalTokens {
-                    entries[existing] = item.entry
+                if parsed.entry.totalTokens > item(kept[existing]).entry.totalTokens {
+                    kept[existing] = row
                 }
                 continue
             }
-            indexByRequestId[requestId] = entries.count
-            entries.append(item.entry)
+            indexByRequestId[requestId] = kept.count
+            kept.append(row)
         }
 
-        return entries
+        return kept
     }
 
     private static func summarize(
