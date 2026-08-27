@@ -43,10 +43,29 @@ struct Row {
 final class UsageDatabase {
 
     enum Failure: Error {
-        case open(String)
-        case prepare(String)
-        case step(String)
+        case open(String, code: Int32)
+        case prepare(String, code: Int32)
+        case step(String, code: Int32)
         case unsupportedSchema(Int)
+
+        /// The SQLite result code behind the failure, extended form. Carrying it
+        /// is what lets `init` tell a corrupt file from a busy, locked, read-only
+        /// or full one, instead of treating every error as corruption.
+        var code: Int32 {
+            switch self {
+            case .open(_, let code), .prepare(_, let code), .step(_, let code): return code
+            case .unsupportedSchema: return SQLITE_OK
+            }
+        }
+
+        /// True only for the two codes that actually mean "this file is not a
+        /// usable database". Everything else — SQLITE_BUSY, SQLITE_IOERR, a full
+        /// disk, a read-only volume — is transient or environmental, and the
+        /// archive it would destroy cannot be rebuilt from disk.
+        var meansCorruption: Bool {
+            let primary = code & 0xFF
+            return primary == SQLITE_CORRUPT || primary == SQLITE_NOTADB
+        }
     }
 
     static var defaultPath: String {
@@ -61,9 +80,13 @@ final class UsageDatabase {
     private var handle: OpaquePointer?
     private let queue = DispatchQueue(label: "com.yettimon.claude-usage-tracker-bar.database")
 
-    /// Opens `path`, creating and migrating the schema. If the file is unusable —
-    /// corrupt, or written by a newer build — it is deleted and rebuilt once.
-    /// Rebuilding loses the archive but never the app.
+    /// Opens `path`, creating and migrating the schema.
+    ///
+    /// The file is deleted and rebuilt only when SQLite says it is corrupt or is
+    /// not a database at all. Any other failure is propagated with the file left
+    /// untouched, and the caller falls back to parsing in memory: `daily_archive`
+    /// is the one thing here that cannot be reconstructed from disk, so a locked,
+    /// busy, read-only or full volume must never cost the user their history.
     init(path: String) throws {
         self.path = path
         do {
@@ -72,19 +95,26 @@ final class UsageDatabase {
             // Written by a newer build. Deleting it would throw away an archive
             // that build still understands, so refuse instead: the caller falls
             // back to parsing in memory.
-            if let handle { sqlite3_close(handle) }
-            handle = nil
+            closeHandle()
             logger.error("database schema v\(version) is newer than this build; not touching it")
             throw Failure.unsupportedSchema(version)
         } catch {
-            logger.error("database unusable (\(String(describing: error), privacy: .public)); rebuilding")
-            if let handle { sqlite3_close(handle) }
-            handle = nil
+            closeHandle()
+            guard (error as? Failure)?.meansCorruption == true else {
+                logger.error("database could not be opened (\(String(describing: error))); leaving it in place")
+                throw error
+            }
+            logger.error("database is corrupt (\(String(describing: error))); rebuilding")
             for suffix in ["", "-wal", "-shm"] {
                 try? FileManager.default.removeItem(atPath: path + suffix)
             }
             try openAndMigrate()
         }
+    }
+
+    private func closeHandle() {
+        if let handle { sqlite3_close(handle) }
+        handle = nil
     }
 
     deinit {
@@ -101,7 +131,7 @@ final class UsageDatabase {
 
     func withConnection<T>(_ body: (Connection) throws -> T) throws -> T {
         try queue.sync {
-            guard let handle else { throw Failure.open(path) }
+            guard let handle else { throw Failure.open(path, code: SQLITE_MISUSE) }
             return try body(Connection(handle: handle))
         }
     }
@@ -109,12 +139,20 @@ final class UsageDatabase {
     private static func open(path: String) throws -> OpaquePointer {
         var handle: OpaquePointer?
         let flags = SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE | SQLITE_OPEN_FULLMUTEX
-        guard sqlite3_open_v2(path, &handle, flags, nil) == SQLITE_OK, let handle else {
-            throw Failure.open(path)
+        let code = sqlite3_open_v2(path, &handle, flags, nil)
+        guard code == SQLITE_OK, let opened = handle else {
+            // open_v2 hands back a handle even when it fails, purely to carry the
+            // error; it still has to be closed.
+            let extended = handle.map { sqlite3_extended_errcode($0) } ?? code
+            if let handle { sqlite3_close(handle) }
+            throw Failure.open(path, code: extended)
         }
-        sqlite3_exec(handle, "PRAGMA journal_mode = WAL;", nil, nil, nil)
-        sqlite3_exec(handle, "PRAGMA foreign_keys = ON;", nil, nil, nil)
-        return handle
+        sqlite3_exec(opened, "PRAGMA journal_mode = WAL;", nil, nil, nil)
+        // Without this a second instance holding BEGIN IMMEDIATE through a
+        // multi-second first-run pass hands this one SQLITE_BUSY immediately.
+        sqlite3_exec(opened, "PRAGMA busy_timeout = 5000;", nil, nil, nil)
+        sqlite3_exec(opened, "PRAGMA foreign_keys = ON;", nil, nil, nil)
+        return opened
     }
 
     private static func migrate(_ connection: Connection) throws {
@@ -133,10 +171,11 @@ final class UsageDatabase {
         /// Runs one or more statements with no bindings. Used for DDL.
         func execute(_ sql: String) throws {
             var message: UnsafeMutablePointer<CChar>?
-            guard sqlite3_exec(handle, sql, nil, nil, &message) == SQLITE_OK else {
+            let code = sqlite3_exec(handle, sql, nil, nil, &message)
+            guard code == SQLITE_OK else {
                 let text = message.map { String(cString: $0) } ?? "unknown error"
                 sqlite3_free(message)
-                throw Failure.step(text)
+                throw Failure.step(text, code: sqlite3_extended_errcode(handle))
             }
         }
 
@@ -145,7 +184,8 @@ final class UsageDatabase {
             defer { sqlite3_finalize(statement) }
             let code = sqlite3_step(statement)
             guard code == SQLITE_DONE || code == SQLITE_ROW else {
-                throw Failure.step(String(cString: sqlite3_errmsg(handle)))
+                throw Failure.step(String(cString: sqlite3_errmsg(handle)),
+                                   code: sqlite3_extended_errcode(handle))
             }
         }
 
@@ -159,7 +199,8 @@ final class UsageDatabase {
                 code = sqlite3_step(statement)
             }
             guard code == SQLITE_DONE else {
-                throw Failure.step(String(cString: sqlite3_errmsg(handle)))
+                throw Failure.step(String(cString: sqlite3_errmsg(handle)),
+                                   code: sqlite3_extended_errcode(handle))
             }
             return results
         }
@@ -181,7 +222,8 @@ final class UsageDatabase {
             guard sqlite3_prepare_v2(handle, sql, -1, &statement, nil) == SQLITE_OK,
                   let statement
             else {
-                throw Failure.prepare(String(cString: sqlite3_errmsg(handle)))
+                throw Failure.prepare(String(cString: sqlite3_errmsg(handle)),
+                                      code: sqlite3_extended_errcode(handle))
             }
             for (offset, value) in binds.enumerated() {
                 let index = Int32(offset + 1)

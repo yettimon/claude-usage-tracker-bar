@@ -98,6 +98,48 @@ final class UsageDatabaseTests: XCTestCase {
         XCTAssertEqual(version.first, UsageSchema.version)
     }
 
+    /// A database that cannot be opened for a reason that is *not* corruption —
+    /// here, permissions taken away — must be left on disk. `daily_archive` is
+    /// the one thing in this feature that cannot be rebuilt from the transcripts.
+    func testKeepsANonCorruptDatabaseThatCannotBeOpened() throws {
+        do {
+            let database = try UsageDatabase(path: path)
+            try database.withConnection { connection in
+                try connection.run(
+                    "INSERT INTO file_cursor (path, size, mtime) VALUES (?, ?, ?)",
+                    [.text("/a.jsonl"), .int(7), .double(1)]
+                )
+            }
+        }
+        for suffix in ["", "-wal", "-shm"] where FileManager.default.fileExists(atPath: path + suffix) {
+            try FileManager.default.setAttributes([.posixPermissions: 0], ofItemAtPath: path + suffix)
+        }
+        defer {
+            for suffix in ["", "-wal", "-shm"] where FileManager.default.fileExists(atPath: path + suffix) {
+                try? FileManager.default.setAttributes([.posixPermissions: 0o600], ofItemAtPath: path + suffix)
+            }
+        }
+
+        XCTAssertThrowsError(try UsageDatabase(path: path)) { error in
+            guard case UsageDatabase.Failure.open = error else {
+                return XCTFail("expected Failure.open, got \(error)")
+            }
+            XCTAssertFalse((error as! UsageDatabase.Failure).meansCorruption)
+        }
+        XCTAssertTrue(FileManager.default.fileExists(atPath: path),
+                      "a database that is merely unreachable must not be deleted")
+
+        // Restore access: the archive is still there, unrebuilt.
+        for suffix in ["", "-wal", "-shm"] where FileManager.default.fileExists(atPath: path + suffix) {
+            try FileManager.default.setAttributes([.posixPermissions: 0o600], ofItemAtPath: path + suffix)
+        }
+        let reopened = try UsageDatabase(path: path)
+        let count = try reopened.withConnection { connection in
+            try connection.query("SELECT COUNT(*) FROM file_cursor") { $0.int(0) }
+        }
+        XCTAssertEqual(count.first, 1, "the row survived the failed open")
+    }
+
     func testRefusesADatabaseFromANewerBuild() throws {
         let database = try UsageDatabase(path: path)
         try database.withConnection { try $0.execute("PRAGMA user_version = 99") }
