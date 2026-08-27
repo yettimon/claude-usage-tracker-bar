@@ -20,8 +20,8 @@ targets:
         CFBundleDisplayName: Claude Usage Tracker
         LSUIElement: true
         NSPrincipalClass: NSApplication
-        CFBundleVersion: "1"
-        CFBundleShortVersionString: "0.2.0"
+        CFBundleVersion: "2"
+        CFBundleShortVersionString: "0.3.0"
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.yettimon.claude-usage-tracker-bar
