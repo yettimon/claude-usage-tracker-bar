@@ -9,7 +9,7 @@ struct HistorySectionView: View {
     private let labelGap: CGFloat = 4
     private let cellSize: CGFloat = 10
     private let gap: CGFloat = 2
-    private let maxWeeks = 22  // ≈ 5 months
+    private let maxWeeks = 53  // 12 months
 
     var body: some View {
         if !store.daily.isEmpty {
