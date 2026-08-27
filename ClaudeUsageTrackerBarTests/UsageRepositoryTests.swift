@@ -395,6 +395,37 @@ final class UsageRepositoryTests: XCTestCase {
         XCTAssertEqual(after.allTime.cacheReadTokens, before.allTime.cacheReadTokens)
     }
 
+    /// The closure has to be transitive, not one hop. Here 08-23 shares nothing
+    /// with a live day directly — but it is chained to one through 08-24. Sealing
+    /// it alone would bank the losing copy of req_a while the winning copy stayed
+    /// on 08-24 to be counted again.
+    func testTheClosureFollowsChainsOfSharedRequestIds() throws {
+        let first = try writeJournal("dead-1.jsonl", [
+            assistantLine(requestId: "req_a", timestamp: "2026-08-23T23:59:58.000Z", input: 1, output: 1),
+            assistantLine(requestId: "req_a", timestamp: "2026-08-24T00:00:03.000Z", input: 1, output: 500)
+        ])
+        let second = try writeJournal("dead-2.jsonl", [
+            assistantLine(requestId: "req_b", timestamp: "2026-08-24T23:59:58.000Z", input: 1, output: 1),
+            assistantLine(requestId: "req_b", timestamp: "2026-08-25T00:00:03.000Z", input: 1, output: 700)
+        ])
+        // Holds 2026-08-25 open, and through req_b and req_a the two days before it.
+        _ = try writeJournal("alive.jsonl", [
+            assistantLine(requestId: "req_c", timestamp: "2026-08-25T10:00:00.000Z", input: 1, output: 9)
+        ])
+        let reference = date("2026-08-27T12:00:00Z")
+        let repository = try makeRepository()
+        let before = try repository.snapshot(costMode: .calculate, referenceDate: reference)
+
+        try FileManager.default.removeItem(at: first)
+        try FileManager.default.removeItem(at: second)
+        let after = try repository.snapshot(costMode: .calculate, referenceDate: reference)
+
+        XCTAssertEqual(try repository.archivedDays().count, 0,
+                       "the whole chain is anchored to a live day, so none of it seals")
+        XCTAssertEqual(after.allTime.outputTokens, before.allTime.outputTokens)
+        XCTAssertEqual(after.allTime.outputTokens, 500 + 700 + 9)
+    }
+
     /// Once the live file goes too, the whole component seals together and the
     /// turn is still banked once.
     func testTheHeldBackDaySealsOnceTheLiveFileGoesToo() throws {
