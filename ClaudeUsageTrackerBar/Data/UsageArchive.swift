@@ -66,7 +66,11 @@ enum UsageArchive {
             // A sealed row is never recomputed, so a bad blob here means that day's
             // "models used" data is gone for good. Log it — this must not be silent —
             // but don't throw: one bad row must not fail an entire `all(from:)` snapshot.
-            logger.warning("daily_archive models blob failed to decode; treating as empty: \(text, privacy: .public)")
+            // The blob is raw database content, so only its size goes into the
+            // system log in the clear; the text itself stays private.
+            logger.warning("""
+                daily_archive models blob failed to decode                 (\(text.count, privacy: .public) bytes); treating as empty: \(text)
+                """)
             return [:]
         }
         return models

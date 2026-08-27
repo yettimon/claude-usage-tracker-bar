@@ -50,7 +50,7 @@ final class UsageStore: ObservableObject {
             do {
                 return try repository.snapshot(costMode: costMode)
             } catch {
-                logger.error("archive snapshot failed: \(String(describing: error), privacy: .public)")
+                logger.error("archive snapshot failed: \(String(describing: error))")
             }
         }
         return UsageAggregator.aggregate(entries: JournalParser.parse(), costMode: costMode)
