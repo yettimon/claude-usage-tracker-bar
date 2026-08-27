@@ -27,14 +27,20 @@ enum JournalParser {
 
         var parsed: [ParsedEntry] = []
         for case let url as URL in enumerator where url.pathExtension == "jsonl" {
-            parsed.append(contentsOf: parseFileEntries(at: url))
+            // A file this pass cannot read is simply skipped, as it always was:
+            // nothing is cached here, so the next parse picks it up.
+            parsed.append(contentsOf: parseFileEntries(at: url) ?? [])
         }
         return UsageAggregator.dedupe(parsed)
     }
 
     /// Every assistant turn in one file, in file order, without deduplication.
-    static func parseFileEntries(at url: URL) -> [ParsedEntry] {
-        guard let content = try? String(contentsOf: url, encoding: .utf8) else { return [] }
+    ///
+    /// Returns nil when the file cannot be read, which callers must not confuse
+    /// with an empty result: a file with no assistant turns is a fact worth
+    /// caching, an unreadable file is not.
+    static func parseFileEntries(at url: URL) -> [ParsedEntry]? {
+        guard let content = try? String(contentsOf: url, encoding: .utf8) else { return nil }
         return content
             .components(separatedBy: .newlines)
             .filter { !$0.isEmpty }

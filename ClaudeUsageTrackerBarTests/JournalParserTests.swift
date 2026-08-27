@@ -65,11 +65,26 @@ final class JournalParserTests: XCTestCase {
         ]
         try lines.joined(separator: "\n").write(to: file, atomically: true, encoding: .utf8)
 
-        let parsed = JournalParser.parseFileEntries(at: file)
+        let parsed = try XCTUnwrap(JournalParser.parseFileEntries(at: file))
 
         // parseFileEntries does not dedupe — it hands both copies over with their ids.
         XCTAssertEqual(parsed.count, 2)
         XCTAssertEqual(parsed.map(\.requestId), ["req_1", "req_1"])
+    }
+
+    func testReportsAnUnreadableFileAsNilRatherThanEmpty() throws {
+        let directory = FileManager.default.temporaryDirectory
+            .appendingPathComponent("journal-unreadable-\(UUID().uuidString)", isDirectory: true)
+        try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: directory) }
+
+        let missing = directory.appendingPathComponent("gone.jsonl")
+        XCTAssertNil(JournalParser.parseFileEntries(at: missing),
+                     "unreadable must be distinguishable from a file with no assistant turns")
+
+        let empty = directory.appendingPathComponent("empty.jsonl")
+        try Data().write(to: empty)
+        XCTAssertEqual(JournalParser.parseFileEntries(at: empty)?.count, 0)
     }
 
     func testDedupeKeepsLargestCopyPerRequestId() {
