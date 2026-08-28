@@ -31,6 +31,14 @@ targets:
         CODE_SIGNING_REQUIRED: "NO"
         CODE_SIGNING_ALLOWED: "NO"
         ENABLE_HARDENED_RUNTIME: "NO"
+      configs:
+        # Debug builds run under their own identity so they never share
+        # UserDefaults, the Keychain ACL for "Claude Code-credentials", or the
+        # login-item registration with an installed release build. Rebuilding
+        # otherwise changes the app's code signature under the same identity,
+        # which re-prompts for Keychain access every time.
+        debug:
+          PRODUCT_BUNDLE_IDENTIFIER: com.yettimon.claude-usage-tracker-bar.debug
     dependencies:
       - sdk: CoreServices.framework
       - sdk: ServiceManagement.framework

@@ -637,7 +637,7 @@
 					"@executable_path/../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 14.0;
-				PRODUCT_BUNDLE_IDENTIFIER = "com.yettimon.claude-usage-tracker-bar";
+				PRODUCT_BUNDLE_IDENTIFIER = "com.yettimon.claude-usage-tracker-bar.debug";
 				SDKROOT = macosx;
 				SWIFT_VERSION = 5.9;
 			};
