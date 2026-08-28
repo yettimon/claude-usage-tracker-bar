@@ -57,8 +57,15 @@ final class UsageRepository {
         var parsedCount = 0
         let result = try database.withConnection { connection in
             try connection.transaction {
-                parsedCount = try syncFiles(connection)
-                try seal(connection, referenceDate: referenceDate, costMode: costMode)
+                // A nil sync means the transcript tree could not be read. The
+                // cache is untouched and still produces correct totals, but an
+                // empty listing is not evidence that files are gone, so nothing
+                // may seal on this pass.
+                let synced = try syncFiles(connection)
+                parsedCount = synced ?? 0
+                if synced != nil {
+                    try seal(connection, referenceDate: referenceDate, costMode: costMode)
+                }
 
                 let archived = try UsageArchive.all(from: connection)
                 let sealedDays = Set(archived.map(\.day))
@@ -99,7 +106,16 @@ final class UsageRepository {
 
     // MARK: - Step 1: sync files
 
-    private func syncFiles(_ connection: UsageDatabase.Connection) throws -> Int {
+    /// Returns the number of files parsed, or nil when the transcript tree could
+    /// not be read and the pass was skipped entirely.
+    ///
+    /// The listing is taken before anything is written. The blanket `alive = 0`
+    /// below is only safe when an empty listing means "every file is gone" — on
+    /// an unreadable tree it would instead mark every file dead, and every day
+    /// before today would become sealable on no evidence at all.
+    private func syncFiles(_ connection: UsageDatabase.Connection) throws -> Int? {
+        guard let files = journalFiles() else { return nil }
+
         var filesParsed = 0
 
         var cursors: [String: (size: Int, mtime: Double)] = [:]
@@ -113,7 +129,7 @@ final class UsageRepository {
         // was deleted by Claude Code's cleanup.
         try connection.run("UPDATE file_cursor SET alive = 0")
 
-        for url in journalFiles() {
+        for url in files {
             let attributes = try? fileManager.attributesOfItem(atPath: url.path)
             let size = (attributes?[.size] as? NSNumber)?.intValue
             let mtime = (attributes?[.modificationDate] as? Date)?.timeIntervalSince1970
@@ -401,18 +417,40 @@ final class UsageRepository {
         Array(repeating: "?", count: count).joined(separator: ",")
     }
 
-    private func journalFiles() -> [URL] {
-        guard let enumerator = fileManager.enumerator(
+    /// Every `.jsonl` under the projects tree, or nil when the tree could not be
+    /// read and the result would therefore be a lie.
+    ///
+    /// `FileManager` does not signal this through the return value: a missing
+    /// directory, an unreadable one, and a path that is not a directory at all
+    /// each hand back a perfectly good enumerator that simply yields nothing —
+    /// indistinguishable from a tree Claude Code has cleaned out. Only the error
+    /// handler tells the two apart, and the difference decides whether an empty
+    /// result is evidence that every file is gone. Sealing acts on exactly that
+    /// evidence and is irreversible, so guessing is not an option.
+    private func journalFiles() -> [URL]? {
+        var readFailure: Error?
+        let enumerator = fileManager.enumerator(
             at: URL(fileURLWithPath: projectsPath),
             includingPropertiesForKeys: [.isRegularFileKey],
-            options: [.skipsHiddenFiles]
-        ) else { return [] }
+            options: [.skipsHiddenFiles],
+            errorHandler: { _, error in
+                readFailure = error
+                return false
+            }
+        )
 
         var urls: [URL] = []
-        for case let url as URL in enumerator where url.pathExtension == "jsonl" {
-            urls.append(url)
+        if let enumerator {
+            for case let url as URL in enumerator where url.pathExtension == "jsonl" {
+                urls.append(url)
+            }
         }
-        return urls
+
+        if let readFailure {
+            logger.warning("could not read the transcript tree: \(readFailure.localizedDescription)")
+            return nil
+        }
+        return enumerator == nil ? nil : urls
     }
 
     // MARK: - Step 3: fold the working set

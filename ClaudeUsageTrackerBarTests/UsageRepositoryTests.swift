@@ -83,6 +83,14 @@ final class UsageRepositoryTests: XCTestCase {
         return url
     }
 
+    /// Cursors still marked alive, read through a second connection.
+    func aliveCursorCount() throws -> Int {
+        let database = try UsageDatabase(path: databasePath)
+        return try database.withConnection { connection in
+            try connection.query("SELECT COUNT(*) FROM file_cursor WHERE alive = 1") { $0.int(0) }.first ?? 0
+        }
+    }
+
     /// Row count in `file_entry`, read through a second connection on the same
     /// file. WAL plus the busy timeout make this safe between passes.
     func workingEntryCount() throws -> Int {
@@ -265,6 +273,70 @@ final class UsageRepositoryTests: XCTestCase {
 
         XCTAssertEqual(try archivedDays(repository).count, 0)
         XCTAssertEqual(result.today.inputTokens, 100, "today's entries survive in the working set")
+    }
+
+    // MARK: - An untrustworthy enumeration must never seal
+
+    func testAMissingProjectsDirectoryDoesNotSealAnything() throws {
+        _ = try writeJournal("a.jsonl", [
+            assistantLine(requestId: "req_1", timestamp: "2026-08-24T10:00:00.000Z")
+        ])
+        let reference = date("2026-08-26T12:00:00Z")
+        let repository = try makeRepository()
+        _ = try repository.snapshot(costMode: .calculate, referenceDate: reference)
+        XCTAssertEqual(try archivedDays(repository).count, 0, "nothing seals while the file is there")
+
+        // The whole tree goes away — a disk not mounted yet, a renamed home, a
+        // sandbox that has not granted access. Every file looks gone, but the
+        // enumeration is not evidence of anything.
+        try FileManager.default.removeItem(at: projects)
+        let result = try repository.snapshot(costMode: .calculate, referenceDate: reference)
+
+        XCTAssertEqual(
+            try archivedDays(repository).count, 0,
+            "an unreadable tree must not freeze a day: sealing is irreversible"
+        )
+        XCTAssertEqual(
+            result.allTime.inputTokens, 100,
+            "the cached entries still produce totals"
+        )
+        XCTAssertEqual(try aliveCursorCount(), 1, "no cursor may be marked dead on a skipped pass")
+    }
+
+    func testAnUnreadableProjectsDirectoryDoesNotSealAnything() throws {
+        _ = try writeJournal("a.jsonl", [
+            assistantLine(requestId: "req_1", timestamp: "2026-08-24T10:00:00.000Z")
+        ])
+        let reference = date("2026-08-26T12:00:00Z")
+        let repository = try makeRepository()
+        _ = try repository.snapshot(costMode: .calculate, referenceDate: reference)
+
+        try FileManager.default.setAttributes([.posixPermissions: 0o000], ofItemAtPath: projects.path)
+        defer {
+            try? FileManager.default.setAttributes([.posixPermissions: 0o755], ofItemAtPath: projects.path)
+        }
+        _ = try repository.snapshot(costMode: .calculate, referenceDate: reference)
+
+        XCTAssertEqual(try archivedDays(repository).count, 0)
+        XCTAssertEqual(try aliveCursorCount(), 1)
+    }
+
+    func testAGenuinelyEmptyProjectsDirectoryStillSeals() throws {
+        let url = try writeJournal("a.jsonl", [
+            assistantLine(requestId: "req_1", timestamp: "2026-08-24T10:00:00.000Z")
+        ])
+        let reference = date("2026-08-26T12:00:00Z")
+        let repository = try makeRepository()
+        _ = try repository.snapshot(costMode: .calculate, referenceDate: reference)
+
+        // The directory survives and is readable; Claude Code simply cleaned every
+        // transcript out of it. That IS evidence, and the day must seal.
+        try FileManager.default.removeItem(at: url)
+        _ = try repository.snapshot(costMode: .calculate, referenceDate: reference)
+
+        let archived = try archivedDays(repository)
+        XCTAssertEqual(archived.count, 1, "an empty but readable tree still seals")
+        XCTAssertEqual(archived.first?.day, 20260824)
     }
 
     func testSealedTotalsSurviveTheFileDisappearing() throws {
