@@ -9,7 +9,7 @@ struct HistorySectionView: View {
     private let labelGap: CGFloat = 4
     private let cellSize: CGFloat = 10
     private let gap: CGFloat = 2
-    private let maxWeeks = 22  // ≈ 5 months
+    private let maxWeeks = 53  // 12 months
 
     var body: some View {
         if !store.daily.isEmpty {
@@ -66,7 +66,7 @@ struct HistorySectionView: View {
                 }
             }
 
-            // Scrolling month labels + week columns. Content (22 weeks) always
+            // Scrolling month labels + week columns. Content (53 weeks) always
             // exceeds the viewport, so it fills width and scrolls; pinned to the
             // most recent week on open.
             ScrollViewReader { proxy in

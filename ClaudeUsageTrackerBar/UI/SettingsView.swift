@@ -1,6 +1,13 @@
 import SwiftUI
 
 private let changelog: [(version: String, date: String, items: [String])] = [
+    ("0.3.0", "Aug 2026", [
+        "History is now kept permanently in a local database",
+        "Heatmap shows twelve months instead of five",
+        "All-time totals now really mean all time",
+        "Refreshes no longer re-read transcripts that have not changed",
+        "History starts building from this version — Claude Code deletes transcripts after 30 days, so earlier usage cannot be recovered"
+    ]),
     ("0.2.0", "Jul 2026", [
         "Right-click the menu-bar icon for Open, Settings and Quit",
         "Quota alerts — get notified at 50%, 90% and when your 5-hour limit resets (toggle in Settings)",

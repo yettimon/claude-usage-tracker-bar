@@ -2,6 +2,13 @@ import Foundation
 
 enum JournalParser {
 
+    /// One assistant turn as it appeared in a file, with the `requestId` still
+    /// attached. Deduplication happens later, across every file at once.
+    struct ParsedEntry {
+        let requestId: String?
+        let entry: JournalEntry
+    }
+
     private static let dateFormatter: ISO8601DateFormatter = {
         let f = ISO8601DateFormatter()
         f.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
@@ -18,28 +25,29 @@ enum JournalParser {
             options: [.skipsHiddenFiles]
         ) else { return [] }
 
-        var requestIdIndex: [String: Int] = [:]
-        var entries: [JournalEntry] = []
-
-        for case let url as URL in enumerator {
-            guard url.pathExtension == "jsonl" else { continue }
-            guard let content = try? String(contentsOf: url, encoding: .utf8) else { continue }
-            for line in content.components(separatedBy: .newlines) where !line.isEmpty {
-                guard let (requestId, entry) = parseEntry(line) else { continue }
-                if let id = requestId {
-                    if let existingIdx = requestIdIndex[id] {
-                        // Keep the entry with more total tokens (streaming writes incomplete entries first)
-                        if entry.totalTokens > entries[existingIdx].totalTokens {
-                            entries[existingIdx] = entry
-                        }
-                        continue
-                    }
-                    requestIdIndex[id] = entries.count
-                }
-                entries.append(entry)
-            }
+        var parsed: [ParsedEntry] = []
+        for case let url as URL in enumerator where url.pathExtension == "jsonl" {
+            // A file this pass cannot read is simply skipped, as it always was:
+            // nothing is cached here, so the next parse picks it up.
+            parsed.append(contentsOf: parseFileEntries(at: url) ?? [])
         }
-        return entries
+        return UsageAggregator.dedupe(parsed)
+    }
+
+    /// Every assistant turn in one file, in file order, without deduplication.
+    ///
+    /// Returns nil when the file cannot be read, which callers must not confuse
+    /// with an empty result: a file with no assistant turns is a fact worth
+    /// caching, an unreadable file is not.
+    static func parseFileEntries(at url: URL) -> [ParsedEntry]? {
+        guard let content = try? String(contentsOf: url, encoding: .utf8) else { return nil }
+        return content
+            .components(separatedBy: .newlines)
+            .filter { !$0.isEmpty }
+            .compactMap { line in
+                guard let parsed = parseEntry(line) else { return nil }
+                return ParsedEntry(requestId: parsed.requestId, entry: parsed.entry)
+            }
     }
 
     static func parseFile(at url: URL) -> [JournalEntry] {
