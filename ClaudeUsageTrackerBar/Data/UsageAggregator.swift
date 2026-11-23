@@ -9,21 +9,83 @@ enum UsageAggregator {
         let daily: [Date: DailyUsage]
     }
 
-    static func aggregate(entries: [JournalEntry], referenceDate: Date = Date(), costMode: CostMode = .auto) -> Result {
+    /// `archived` holds days already sealed into the archive. Their transcripts
+    /// are gone, so they carry frozen totals rather than entries. Sealed days are
+    /// always earlier than today and never overlap `entries`.
+    static func aggregate(
+        entries: [JournalEntry],
+        archived: [ArchivedDay] = [],
+        referenceDate: Date = Date(),
+        costMode: CostMode = .auto
+    ) -> Result {
         let calendar = Calendar.current
         let startOfToday = calendar.startOfDay(for: referenceDate)
         let thirtyDaysAgo = calendar.date(byAdding: .day, value: -30, to: referenceDate)!
 
+        let archivedInWindow = archived.filter { DayKey.date($0.day, calendar: calendar) >= thirtyDaysAgo }
+
+        var daily = dailyBuckets(entries, costMode: costMode, calendar: calendar)
+        for day in archived {
+            daily[DayKey.date(day.day, calendar: calendar)] = day.dailyUsage
+        }
+
         return Result(
-            today: summarize(entries.filter { $0.timestamp >= startOfToday }, costMode: costMode),
-            last30Days: summarize(entries.filter { $0.timestamp >= thirtyDaysAgo }, costMode: costMode),
-            allTime: summarize(entries, costMode: costMode),
-            daily: dailyBuckets(entries, costMode: costMode, calendar: calendar)
+            today: summarize(entries.filter { $0.timestamp >= startOfToday }, archived: [], costMode: costMode),
+            last30Days: summarize(entries.filter { $0.timestamp >= thirtyDaysAgo }, archived: archivedInWindow, costMode: costMode),
+            allTime: summarize(entries, archived: archived, costMode: costMode),
+            daily: daily
         )
     }
 
-    private static func summarize(_ entries: [JournalEntry], costMode: CostMode) -> UsageSummary {
-        guard !entries.isEmpty else { return .empty }
+    /// Collapses duplicate assistant turns, keeping the copy with the most tokens.
+    ///
+    /// Claude Code writes an incomplete entry while a response streams and a full
+    /// one when it finishes, and copies whole turns between files on session
+    /// resume and into subagent transcripts. Duplicates therefore span files, so
+    /// this must run across the entire set at once, never per file — and never
+    /// per day, because the two copies of one turn carry *different* timestamps
+    /// and can land either side of midnight.
+    /// Entries with no `requestId` are never merged.
+    static func dedupe(_ parsed: [JournalParser.ParsedEntry]) -> [JournalEntry] {
+        dedupe(parsed, entry: { $0 }).map(\.entry)
+    }
+
+    /// The same fold, over rows that carry an entry plus whatever else the caller
+    /// needs to keep. The archive needs each winner's stored `day` so it can bank
+    /// the turn on the day the winning copy actually belongs to, so both callers
+    /// share one implementation rather than reimplementing the tie-break.
+    static func dedupe<Row>(
+        _ rows: [Row],
+        entry item: (Row) -> JournalParser.ParsedEntry
+    ) -> [Row] {
+        var indexByRequestId: [String: Int] = [:]
+        var kept: [Row] = []
+
+        for row in rows {
+            let parsed = item(row)
+            guard let requestId = parsed.requestId else {
+                kept.append(row)
+                continue
+            }
+            if let existing = indexByRequestId[requestId] {
+                if parsed.entry.totalTokens > item(kept[existing]).entry.totalTokens {
+                    kept[existing] = row
+                }
+                continue
+            }
+            indexByRequestId[requestId] = kept.count
+            kept.append(row)
+        }
+
+        return kept
+    }
+
+    private static func summarize(
+        _ entries: [JournalEntry],
+        archived: [ArchivedDay],
+        costMode: CostMode
+    ) -> UsageSummary {
+        guard !entries.isEmpty || !archived.isEmpty else { return .empty }
 
         var modelTokens: [String: Int] = [:]
         var summary = UsageSummary()
@@ -33,12 +95,23 @@ enum UsageAggregator {
             summary.outputTokens += entry.outputTokens
             summary.cacheWriteTokens += entry.cacheWriteTokens
             summary.cacheReadTokens += entry.cacheReadTokens
-            summary.totalCost += entryCost(entry, mode: costMode)
+            summary.totalCost += cost(of: entry, mode: costMode)
             modelTokens[entry.model, default: 0] += entry.inputTokens + entry.outputTokens
         }
 
+        for day in archived {
+            summary.inputTokens += day.inputTokens
+            summary.outputTokens += day.outputTokens
+            summary.cacheWriteTokens += day.cacheWriteTokens
+            summary.cacheReadTokens += day.cacheReadTokens
+            summary.totalCost += day.cost   // frozen; never repriced
+            for (model, tokens) in day.models {
+                modelTokens[model, default: 0] += tokens
+            }
+        }
+
         summary.modelsUsed = modelTokens
-            .sorted { $0.value > $1.value }
+            .sorted { $0.value == $1.value ? $0.key < $1.key : $0.value > $1.value }
             .map { $0.key }
 
         return summary
@@ -49,7 +122,7 @@ enum UsageAggregator {
         for entry in entries {
             let day = calendar.startOfDay(for: entry.timestamp)
             var bucket = acc[day] ?? (0, 0, 0)
-            bucket.cost += entryCost(entry, mode: costMode)
+            bucket.cost += cost(of: entry, mode: costMode)
             bucket.tokens += entry.totalTokens
             bucket.requests += 1
             acc[day] = bucket
@@ -61,7 +134,7 @@ enum UsageAggregator {
         return result
     }
 
-    private static func entryCost(_ entry: JournalEntry, mode: CostMode) -> Double {
+    static func cost(of entry: JournalEntry, mode: CostMode) -> Double {
         switch mode {
         case .display:
             return entry.costUSD ?? 0

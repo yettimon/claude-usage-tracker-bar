@@ -15,7 +15,8 @@ A lightweight native macOS menu bar app that shows your [Claude Code](https://cl
 - **Cost estimate** — calculated via [LiteLLM](https://github.com/BerriAI/litellm) pricing data (fetched on launch, cached 24h) with fallback to bundled rates
 - **Colored menu bar icon** — orange spark + gold coin stack, visible on any menu bar
 - **Quota tracking** — 5-hour and weekly utilization bars fetched from Anthropic's usage endpoint, color-coded green / yellow / red with reset countdowns; auto-retries on wake from sleep
-- **Usage history heatmap** — GitHub-style daily activity grid for the past 5 months; switchable metric (cost, tokens, requests); click any cell for a detailed breakdown
+- **Usage history heatmap** — GitHub-style daily activity grid for the past 12 months; switchable metric (cost, tokens, requests); click any cell for a detailed breakdown
+- **Permanent history** — daily usage is archived to a local SQLite database, so it survives Claude Code deleting its transcripts after 30 days; unchanged transcripts are never re-parsed
 - **Service status** — live Claude operational status (green / yellow / red) fetched from status.claude.com, with "updated X ago" timestamp
 - **Quick access** — gear and quit buttons always visible in popup header
 - **Launch at login** — enabled by default via SMAppService
